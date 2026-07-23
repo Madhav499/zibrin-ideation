@@ -1,0 +1,37 @@
+[
+  {
+    "slug": "saas",
+    "name": "SaaS & Product Companies",
+    "description": "Scaling web and mobile architectures for hyper-growth digital products. Custom analytics integration, Stripe recurring payments, and multi-tenant DB schemas.",
+    "benefit": "Accelerate time-to-market by 40% with pre-engineered auth, billing, and edge-layout primitives.",
+    "seoKeywords": ["Hire SaaS developer", "SaaS bootstrap framework", "Stripe subscription software"]
+  },
+  {
+    "slug": "healthcare",
+    "name": "Digital Healthcare & MedTech",
+    "description": "Building HIPAA-compliant telemedicine platforms, medical record managers, and secure patient onboarding forms with end-to-end data encryption.",
+    "benefit": "Absolute data integrity, 100% compliance configurations, and ultra-secure file encryption storage.",
+    "seoKeywords": ["HIPAA compliant software", "Telemedicine platform developers", "MedTech software lab"]
+  },
+  {
+    "slug": "finance",
+    "name": "FinTech & Secure Banking",
+    "description": "Engineering high-performance dashboard charts, decentralized ledgers, bank feed sync hooks, and strict anti-fraud transaction logging systems.",
+    "benefit": "Sub-millisecond data loading times and strict CSP sandboxing preventing data leaks.",
+    "seoKeywords": ["Fintech software engineering", "Secure transaction systems", "Finance dashboard developer"]
+  },
+  {
+    "slug": "startups",
+    "name": "VC-Backed Startups",
+    "description": "Rapid prototyping of high-fidelity MVPs designed to wow investors. Optimized React templates, dynamic pitch animations, and scalable databases.",
+    "benefit": "Go from raw requirements to investor-ready deployment in under 30 days.",
+    "seoKeywords": ["Startup MVP engineering", "Hire startup developers", "Rapid software prototyping"]
+  },
+  {
+    "slug": "ecommerce",
+    "name": "Next-Gen E-Commerce",
+    "description": "Architecting headless Shopify engines, dynamic inventory control boards, and server-rendered checkout flows for massive search indexing gains.",
+    "benefit": "PPR-enabled server pre-rendering yields 400ms faster page loads, driving double-digit checkout conversion boosts.",
+    "seoKeywords": ["Headless Shopify development", "Fast ecommerce platforms", "Nextjs online store"]
+  }
+]

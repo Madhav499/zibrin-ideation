@@ -1,0 +1,98 @@
+[
+  {
+    "slug": "web-development",
+    "name": "Web Platform Engineering",
+    "icon": "Globe",
+    "description": "Architecting ultra-high-speed, server-rendered Next.js and React platforms engineered for max conversions, core web vitals excellence, and seamless search indexing.",
+    "deliverables": [
+      "Custom Server-Rendered Applications",
+      "Tailwind Responsive Design Layouts",
+      "SEO/AEO/GEO Meta Structure",
+      "Dynamic Content API Integrations"
+    ],
+    "timeline": "4 - 8 Weeks",
+    "priceRange": "₹1,50,000 - ₹4,50,000",
+    "technologies": ["Next.js", "React", "TypeScript", "TailwindCSS", "Node.js"],
+    "metrics": "100/100 Lighthouse Performance"
+  },
+  {
+    "slug": "ai-automation",
+    "name": "Cognitive AI Integration",
+    "icon": "Cpu",
+    "description": "Deploying intelligent custom AI agents, LLM pipelines, autonomous voice agents, and vector-search database (RAG) knowledge retrieval systems.",
+    "deliverables": [
+      "Custom LLM Fine-tuning Configs",
+      "RAG Document Embedding Systems",
+      "Autonomous Workflow Orchestration",
+      "Automated Proposal Generators"
+    ],
+    "timeline": "6 - 12 Weeks",
+    "priceRange": "₹2,50,000 - ₹7,50,000",
+    "technologies": ["OpenAI API", "Python", "LangChain", "Pinecone", "MongoDB"],
+    "metrics": "90%+ Labor Overhead Reduction"
+  },
+  {
+    "slug": "mobile-apps",
+    "name": "Aerospace Mobile Apps",
+    "icon": "Smartphone",
+    "description": "Engineering native-performance cross-platform mobile apps for iOS and Android utilizing Flutter and React Native for beautiful cinematic micro-animations.",
+    "deliverables": [
+      "Cross-Platform App Engine",
+      "State-of-the-Art Motion Aesthetics",
+      "Offline Database Cache Synchronization",
+      "Secure App Store Submissions"
+    ],
+    "timeline": "8 - 16 Weeks",
+    "priceRange": "₹2,00,000 - ₹6,00,000",
+    "technologies": ["Flutter", "Dart", "Firebase", "SQLite", "AppStore Connect"],
+    "metrics": "4.9/5 Average User Review Rating"
+  },
+  {
+    "slug": "crm-erp-systems",
+    "name": "Custom ERP & CRM Engines",
+    "icon": "Layers",
+    "description": "Consolidating scattered corporate processes into unified dashboard platforms. Custom enterprise scaling pipelines mapping logic to high performance.",
+    "deliverables": [
+      "Operational Flow Orchestrator",
+      "Real-time Inventory & Ledgers",
+      "Client Management Command Centers",
+      "Automated Email & SMS Alerts"
+    ],
+    "timeline": "10 - 20 Weeks",
+    "priceRange": "₹3,50,000 - ₹12,00,000",
+    "technologies": ["Laravel", "PostgreSQL", "React", "AWS", "Docker"],
+    "metrics": "3.5x Admin Efficiency Gains"
+  },
+  {
+    "slug": "cloud-infrastructure",
+    "name": "Serverless Cloud & Ops",
+    "icon": "Cloud",
+    "description": "Configuring auto-scaling serverless cloud architectures with edge rendering, global CDNs, strict firewalls, and sub-100ms response times.",
+    "deliverables": [
+      "Infrastructure as Code Configurations",
+      "Dockerized Load Balancing Systems",
+      "Continuous CI/CD Delivery Pipelines",
+      "Serverless Edge Routing Sync"
+    ],
+    "timeline": "3 - 6 Weeks",
+    "priceRange": "₹1,20,000 - ₹3,50,000",
+    "technologies": ["AWS", "Vercel", "Docker", "Terraform", "Cloudflare"],
+    "metrics": "99.99% Guaranteed Global Uptime"
+  },
+  {
+    "slug": "seo-growth",
+    "name": "SEO / AEO / GEO Engine",
+    "icon": "Search",
+    "description": "Dominating traditional and AI-driven search engines by structuring semantic entity networks that feed directly into Gemini, Perplexity, and ChatGPT results.",
+    "deliverables": [
+      "JSON-LD Knowledge Graph Architectures",
+      "Semantic Entity Relationship Mapping",
+      "AEO Answer Block Layouts",
+      "Intent-based Pillar Pages Structure"
+    ],
+    "timeline": "4 - 8 Weeks",
+    "priceRange": "₹80,000 - ₹2,50,000",
+    "technologies": ["JSON-LD", "Google Search Console", "Clarity", "Next.js"],
+    "metrics": "400%+ AI Search Citation Growth"
+  }
+]

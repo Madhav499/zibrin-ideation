@@ -1,0 +1,51 @@
+[
+  {
+    "slug": "react-development",
+    "name": "React Development",
+    "description": "Building interactive single-page application dashboards with complex UI logic, component-level state control, and fluid React 19 concurrent features.",
+    "useCases": ["Real-time Portals", "Fintech Trading Boards", "SaaS Frontends"],
+    "seoKeywords": ["Hire React Engineer", "Enterprise React Platform", "Custom React Dashboard"]
+  },
+  {
+    "slug": "laravel-development",
+    "name": "Laravel PHP Development",
+    "description": "Deploying rock-solid PHP architectures with secure database structures, integrated billing APIs, queue management, and modular MVC layout configurations.",
+    "useCases": ["SaaS Backends", "API Hubs", "Corporate Billing Portals"],
+    "seoKeywords": ["Laravel Engineering Laboratory", "Secure PHP Backends", "Laravel CRM Developer"]
+  },
+  {
+    "slug": "flutter-development",
+    "name": "Flutter App Development",
+    "description": "Designing premium cross-platform apps with GPU-accelerated graphics rendering, custom physics-based scroll, and offline local cache indexing.",
+    "useCases": ["iOS App Development", "Android App Development", "IoT Interactive Screens"],
+    "seoKeywords": ["Hire Flutter Agency", "Cross Platform App Engine", "Flutter UI Developers"]
+  },
+  {
+    "slug": "nextjs-development",
+    "name": "Next.js 15 Platform Engineering",
+    "description": "Our absolute core front-end target. Fully utilizing Server Components, partial pre-rendering, edge API endpoints, and automatic image optimizations.",
+    "useCases": ["AEO-focused SEO Pillars", "E-commerce Platforms", "Dynamic Global Web Applications"],
+    "seoKeywords": ["NextJS 15 Development Agency", "Server Component Architecture", "Lighthouse 100 Webapp"]
+  },
+  {
+    "slug": "nodejs-development",
+    "name": "Node.js API Engineering",
+    "description": "High throughput server applications utilizing non-blocking asynchronous event loops, ideal for microservices and real-time WebSockets communication.",
+    "useCases": ["Real-time Chat Servers", "Enterprise Microservices", "Data Synchronization Pipes"],
+    "seoKeywords": ["Asynchronous Node backend", "Websocket API server", "Microservice architecture"]
+  },
+  {
+    "slug": "python-ai-development",
+    "name": "Python & AI Development",
+    "description": "Developing neural models, predictive analysis tools, advanced machine learning workflows, and connecting LLM backends to conversational frontends.",
+    "useCases": ["Natural Language Processing", "Predictive Analytics", "Custom RAG & Vector Pipes"],
+    "seoKeywords": ["Python AI Laboratory", "LLM Integration Developers", "Machine Learning Workflows"]
+  },
+  {
+    "slug": "openai-integration",
+    "name": "OpenAI Ecosystem Deployment",
+    "description": "Deploying cutting-edge AI systems, fine-tuning GPT models, configuring Assistive AI agent chats, and deploying automated vector embedding RAG.",
+    "useCases": ["Automated Proposal Generation", "Autonomous Customer Assistants", "Agentic Workflow Routers"],
+    "seoKeywords": ["OpenAI Integration Lab", "Fine-tune GPT-4o model", "Agentic AI Developer"]
+  }
+]

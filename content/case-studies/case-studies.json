@@ -1,0 +1,46 @@
+[
+  {
+    "slug": "telemetry-iot-platform",
+    "title": "Industrial Telemetry Platform",
+    "client": "Nexis India & Global",
+    "description": "Engaged by an aerospace leader to engineer a real-time IoT visualization dashboard processing 15,000 telemetry events per second from orbital networks.",
+    "deviceType": "desktop",
+    "technologies": ["Next.js", "TypeScript", "Three.js", "WebSockets", "Docker"],
+    "results": "40% latency reduction & zero data dropouts over a 12-month runtime.",
+    "priceRange": "₹35,00,000",
+    "duration": "10 Weeks"
+  },
+  {
+    "slug": "telehealth-mobile-hub",
+    "title": "VitalsSync Telehealth Hub",
+    "client": "Aegis MedCare India",
+    "description": "Constructed a secure, cross-platform mobile suite integrating real-time Bluetooth heart-monitor feeds directly with clinical databases.",
+    "deviceType": "phone",
+    "technologies": ["Flutter", "Dart", "Firebase", "Bluetooth API", "OpenAI"],
+    "results": "Deployed compliant app to stores in 12 weeks. 200K+ monthly active users.",
+    "priceRange": "₹28,00,000",
+    "duration": "12 Weeks"
+  },
+  {
+    "slug": "automated-crm-saas",
+    "title": "Agentic Lead CRM Engine",
+    "client": "LeadSprint India",
+    "description": "Architected an automated multi-channel CRM SaaS featuring automated client email proposal generators powered by customized GPT-4 models.",
+    "deviceType": "laptop",
+    "technologies": ["React", "Laravel", "PostgreSQL", "OpenAI API", "Razorpay"],
+    "results": "₹10,00,000/month customer support labor savings achieved via cognitive automation.",
+    "priceRange": "₹40,00,000",
+    "duration": "8 Weeks"
+  },
+  {
+    "slug": "fintech-micro-trading",
+    "title": "Zenith Crypto & Trading Board",
+    "client": "Zenith Asset Group India",
+    "description": "Engineered a web application featuring real-time sub-3ms WebSockets chart updates and strict CSRF-proof client wallet execution hooks.",
+    "deviceType": "tablet",
+    "technologies": ["React", "TailwindCSS", "Node.js", "PostgreSQL", "Redis"],
+    "results": "₹7,000 Cr+ in digital transactions processed securely without a single injection incident.",
+    "priceRange": "₹50,00,000",
+    "duration": "14 Weeks"
+  }
+]
