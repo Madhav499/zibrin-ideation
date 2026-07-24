@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { TransitionLink } from "@/providers/transition-provider";
 import ZibrinLogo from "@/features/logo/logo";
 import { ArrowUpRight, Menu, X, Sparkles, PhoneCall } from "lucide-react";
 
@@ -47,7 +47,7 @@ export default function Navbar() {
     >
       <div className="container mx-auto px-4 md:px-8 flex items-center justify-between">
         {/* Brand Logo Link */}
-        <Link href="/" className="flex items-center gap-3 group interactive">
+        <TransitionLink href="/" className="flex items-center gap-3 group interactive">
           <ZibrinLogo size={36} animated={true} />
           <div className="flex flex-col">
             <span className="font-orbitron tracking-widest text-sm font-bold text-white group-hover:text-cyan-glow transition-colors duration-300">
@@ -57,14 +57,14 @@ export default function Navbar() {
               INDIA // HQ
             </span>
           </div>
-        </Link>
+        </TransitionLink>
 
         {/* Desktop Navigation Links */}
         <nav className="hidden lg:flex items-center gap-7">
           {navLinks.map((link, idx) => {
             const isActive = pathname === link.href;
             return (
-              <Link
+              <TransitionLink
                 key={idx}
                 href={link.href}
                 className={`text-xs font-mono tracking-widest uppercase relative py-1 transition-all duration-300 interactive group ${
@@ -77,7 +77,7 @@ export default function Navbar() {
                     isActive ? "w-full shadow-neon-cyan" : "w-0 group-hover:w-full"
                   }`}
                 />
-              </Link>
+              </TransitionLink>
             );
           })}
         </nav>
@@ -85,7 +85,7 @@ export default function Navbar() {
         {/* Right Action buttons & Hamburger toggle */}
         <div className="flex items-center gap-3">
           {/* CTA Product Builder trigger */}
-          <Link
+          <TransitionLink
             href="/builder"
             className="px-3.5 py-2 border border-cyan-glow/30 hover:border-cyan-glow bg-cyan-glow/10 hover:bg-cyan-glow/20 rounded text-[10px] font-mono tracking-widest text-cyan-glow hover:text-white transition-all duration-300 flex items-center gap-1.5 interactive cursor-pointer shadow-neon-cyan"
           >
@@ -93,7 +93,7 @@ export default function Navbar() {
             <span className="hidden sm:inline">BUILD PROJECT</span>
             <span className="sm:hidden">BUILD</span>
             <ArrowUpRight className="w-3.5 h-3.5" />
-          </Link>
+          </TransitionLink>
 
           {/* Mobile Hamburger Button */}
           <button
@@ -117,7 +117,7 @@ export default function Navbar() {
             {navLinks.map((link, idx) => {
               const isActive = pathname === link.href;
               return (
-                <Link
+                <TransitionLink
                   key={idx}
                   href={link.href}
                   onClick={() => setMobileMenuOpen(false)}
@@ -131,7 +131,7 @@ export default function Navbar() {
                     <span>{link.name}</span>
                     <span className="text-[10px] font-mono text-neutral-500">0{idx + 1}</span>
                   </div>
-                </Link>
+                </TransitionLink>
               );
             })}
           </div>
@@ -146,17 +146,18 @@ export default function Navbar() {
               <span className="text-cyan-glow">BKC, MUMBAI</span>
             </div>
 
-            <Link
+            <TransitionLink
               href="/contact"
               onClick={() => setMobileMenuOpen(false)}
               className="w-full py-3 bg-gradient-to-r from-electric-blue to-neon-violet text-white text-xs font-mono font-bold tracking-widest rounded text-center flex items-center justify-center gap-2 shadow-neon-blue"
             >
               <span>CONNECT WITH INDIA AI LAB</span>
               <ArrowUpRight className="w-4 h-4" />
-            </Link>
+            </TransitionLink>
           </div>
         </div>
       )}
     </header>
   );
 }
+

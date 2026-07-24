@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
+import { TransitionLink } from "@/providers/transition-provider";
 import ZibrinLogo from "@/features/logo/logo";
 import { MapPin, Phone, Mail, Clock, ArrowUpRight } from "lucide-react";
 
@@ -62,27 +62,27 @@ export default function Footer() {
               <span>LAB DIRECTORIES</span>
             </h4>
             <div className="flex flex-col gap-2.5 font-mono text-xs">
-              <Link href="/" className="text-neutral-400 hover:text-cyan-glow transition-colors">
+              <TransitionLink href="/" className="text-neutral-400 hover:text-cyan-glow transition-colors">
                 &gt; Home Command
-              </Link>
-              <Link href="/about" className="text-neutral-400 hover:text-cyan-glow transition-colors">
+              </TransitionLink>
+              <TransitionLink href="/about" className="text-neutral-400 hover:text-cyan-glow transition-colors">
                 &gt; About Us (Chamber)
-              </Link>
-              <Link href="/services" className="text-neutral-400 hover:text-cyan-glow transition-colors">
+              </TransitionLink>
+              <TransitionLink href="/services" className="text-neutral-400 hover:text-cyan-glow transition-colors">
                 &gt; Services Galaxy (₹)
-              </Link>
-              <Link href="/portfolio" className="text-neutral-400 hover:text-cyan-glow transition-colors">
+              </TransitionLink>
+              <TransitionLink href="/portfolio" className="text-neutral-400 hover:text-cyan-glow transition-colors">
                 &gt; Case Monoliths
-              </Link>
-              <Link href="/process" className="text-neutral-400 hover:text-cyan-glow transition-colors">
+              </TransitionLink>
+              <TransitionLink href="/process" className="text-neutral-400 hover:text-cyan-glow transition-colors">
                 &gt; Pipeline Factory
-              </Link>
-              <Link href="/contact" className="text-neutral-400 hover:text-cyan-glow transition-colors">
+              </TransitionLink>
+              <TransitionLink href="/contact" className="text-neutral-400 hover:text-cyan-glow transition-colors">
                 &gt; Contact Us (India)
-              </Link>
-              <Link href="/builder" className="text-neutral-400 hover:text-cyan-glow transition-colors">
+              </TransitionLink>
+              <TransitionLink href="/builder" className="text-neutral-400 hover:text-cyan-glow transition-colors">
                 &gt; Product Configurator (₹)
-              </Link>
+              </TransitionLink>
             </div>
           </div>
 
@@ -128,3 +128,4 @@ export default function Footer() {
     </footer>
   );
 }
+

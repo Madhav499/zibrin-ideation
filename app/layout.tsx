@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { Inter, Orbitron, Syne } from "next/font/google";
 import "./globals.css";
 import LenisProvider from "@/providers/lenis-provider";
+import TransitionProvider from "@/providers/transition-provider";
+import WebglEngineProvider from "@/providers/webgl-engine-provider";
+import PageTransitionWrapper from "@/components/page-transition-wrapper";
 import CustomCursor from "@/features/cursor/cursor";
 
 const inter = Inter({
@@ -80,7 +83,7 @@ export default function RootLayout({
   // Structured JSON-LD Data for SEO/AEO/GEO indexing
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "GovernmentBenefitsService", // standard service mappings
+    "@type": "GovernmentBenefitsService",
     "name": "Zibrin Infotech Digital Engineering",
     "description": "Enterprise software engineering, customized generative AI models, automation workflows, and peak performance technical layouts.",
     "url": "https://zibrin.info",
@@ -103,20 +106,30 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col bg-space-black text-white relative">
-        <LenisProvider>
-          {/* Cyber Grid background */}
-          <div className="cyber-grid" />
-          
-          {/* Scan overlay grid */}
-          <div className="noise-overlay" />
-          
-          {/* Interactive Intelligent Cursor */}
-          <CustomCursor />
-          
-          {/* Page Contents */}
-          <div className="relative z-10 flex flex-col flex-1">{children}</div>
-        </LenisProvider>
+        <TransitionProvider>
+          <LenisProvider>
+            {/* Cyber Grid background */}
+            <div className="cyber-grid" />
+            
+            {/* Scan overlay grid */}
+            <div className="noise-overlay" />
+            
+            {/* Interactive Intelligent Cursor */}
+            <CustomCursor />
+
+            {/* Root WebGL-First Master Engine Provider */}
+            <WebglEngineProvider>
+              {/* HTML Content Overlays with 3D Spatial Perspective Wrapper */}
+              <PageTransitionWrapper>
+                <div className="relative z-10 flex flex-col flex-1">{children}</div>
+              </PageTransitionWrapper>
+            </WebglEngineProvider>
+          </LenisProvider>
+        </TransitionProvider>
       </body>
     </html>
   );
 }
+
+
+
