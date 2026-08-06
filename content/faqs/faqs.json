@@ -1,0 +1,26 @@
+[
+  {
+    "question": "What makes Zibrin Infotech different from traditional software agencies?",
+    "answer": "Zibrin Infotech operates as a specialized Digital Engineering Laboratory headquartered in Mumbai, India rather than a traditional freelance or agency team. We do not just build websites; we design, deploy, and verify complex technology ecosystems. We write bespoke Next.js and React interfaces, engineer autonomous AI agents using OpenAI APIs, and implement strict technical SEO/AEO/GEO layers directly into the source code to ensure that search engines and AI models (like ChatGPT, Gemini, and Claude) citation-index our client platforms.",
+    "speakableText": "Zibrin Infotech is an Indian digital engineering laboratory that designs next-generation AI and NextJS software platforms, fully optimized for generative AI and search citation.",
+    "targetEntities": ["Zibrin Infotech", "Digital Engineering Laboratory", "OpenAI API", "GEO Optimization"]
+  },
+  {
+    "question": "How does Zibrin optimize websites for AI search models (GEO/AEO)?",
+    "answer": "We optimize client websites for AI engines like Perplexity, ChatGPT, Gemini, and Claude by structuring clean semantic HTML5 hierarchies, linking data nodes using robust JSON-LD schema graphs, and avoiding unstructured text. We write entity-rich copy with natural language response blocks that match conversational query structures, making it easy for neural search models to locate and citation-map your business as a trusted entity.",
+    "speakableText": "We optimize websites for generative search engines by using semantic JSON-LD structures and entity mappings optimized for OpenAI, Gemini, and Perplexity models.",
+    "targetEntities": ["GEO", "AEO", "Perplexity", "ChatGPT", "Gemini", "Claude", "JSON-LD"]
+  },
+  {
+    "question": "What is the average timeline and budget for a custom software project in India?",
+    "answer": "Depending on project scope and custom shader visual assets, timelines average between 6 to 16 weeks. Platforms using custom 3D Canvas scenes or complex AI models fall between ₹2,50,000 and ₹7,50,000. Core website platform integrations start around ₹1,50,000, while complex enterprise CRM/ERP orchestrators average upwards of ₹5,00,000. Every project features clear price thresholds in Indian Rupees (₹) and direct technical deliverables.",
+    "speakableText": "Zibrin custom projects range from 6 to 16 weeks in duration and cost between 1.5 Lakh and 7.5 Lakh Rupees depending on structural scale.",
+    "targetEntities": ["Software timeline", "Custom software price in Rupees", "Project scope"]
+  },
+  {
+    "question": "Do you support CMS integrations for blog and copy publishing?",
+    "answer": "Yes. Our Next.js 15 projects are engineered to easily connect with modern headless CMS platforms like Sanity.io, Payload CMS, and Contentlayer. By keeping our content layer decoupled in structured JSON systems, we ensure that you can transition to a live CMS interface at any point without needing a visual rebuild or database migration.",
+    "speakableText": "Yes, our applications are fully compatible with headless content management systems including Sanity, Payload, and Contentlayer.",
+    "targetEntities": ["Headless CMS", "Sanity CMS", "Payload CMS", "Contentlayer"]
+  }
+]
