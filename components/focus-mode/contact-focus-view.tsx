@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { Sparkles, Phone, Mail, MapPin, User, Globe, Send, MessageSquare, CheckCircle2, Clock } from "lucide-react";
+import CinematicDigitalEarth from "@/components/webgl/cinematic-digital-earth";
 
 export default function ContactFocusView() {
   const [submitted, setSubmitted] = useState(false);
@@ -250,18 +251,8 @@ export default function ContactFocusView() {
               <Clock className="w-3.5 h-3.5" />
               <span>Business Hours: Mon - Sat (9:00 AM - 7:00 PM IST)</span>
             </div>
-            <div className="w-full h-28 rounded-lg bg-slate-900/80 border border-white/10 flex flex-col items-center justify-center gap-1 relative overflow-hidden">
-              <MapPin className="w-5 h-5 text-cyan-glow animate-bounce" />
-              <div className="text-xs font-bold font-mono text-white">Rajkot, Gujarat, India</div>
-              <a
-                href="https://maps.google.com/?q=Rajkot+Gujarat+India"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-[10px] font-mono text-cyan-glow underline hover:text-white"
-              >
-                Open in Google Maps
-              </a>
-            </div>
+            {/* Real-Time 3D Digital Earth Headquarters Visualizer */}
+            <CinematicDigitalEarth />
           </div>
         </div>
       </div>
