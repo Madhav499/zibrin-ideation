@@ -1,12 +1,12 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Sparkles, Target, Compass, Award, Heart, Shield, Flame, Users, Eye, X } from "lucide-react";
+import { Sparkles, Target, Compass, Award, Heart, Shield, Flame, Users, Eye, X, type LucideIcon } from "lucide-react";
 
 interface CoreValueItem {
   title: string;
   desc: string;
-  icon: React.ElementType;
+  icon: LucideIcon;
 }
 
 const CORE_VALUES: CoreValueItem[] = [
