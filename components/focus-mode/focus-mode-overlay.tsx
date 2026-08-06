@@ -107,12 +107,20 @@ export default function FocusModeOverlay() {
     }
   };
 
+  // Prevent wheel event propagation to window
+  const handleWheel = (e: React.WheelEvent) => {
+    e.stopPropagation();
+  };
+
   if (!activeFocusKey) return null;
 
   const metadata = FOCUS_TITLES[activeFocusKey];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-0 md:p-4 lg:p-6 bg-space-black/80 backdrop-blur-[15px] transition-all duration-300 animate-in fade-in">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-0 md:p-4 lg:p-6 bg-space-black/80 backdrop-blur-[15px] transition-all duration-300 animate-in fade-in"
+      onWheel={handleWheel}
+    >
       {/* Dark Ambient Backdrop Tint (20%) */}
       <div
         className="absolute inset-0 bg-space-black/20 pointer-events-auto cursor-pointer"
@@ -153,10 +161,13 @@ export default function FocusModeOverlay() {
           </button>
         </div>
 
-        {/* Scrollable Body (Flex-1, Overflow-Y-Auto with Glass Scrollbar) */}
+        {/* Scrollable Body (Flex-1, Overflow-Y-Auto with Glass Scrollbar and Lenis Prevent) */}
         <div
           ref={scrollContainerRef}
           onScroll={handleScroll}
+          data-lenis-prevent="true"
+          data-lenis-prevent-wheel="true"
+          data-lenis-prevent-touch="true"
           className="flex-1 overflow-y-auto px-4 sm:px-6 py-5 focus-scrollbar overscroll-contain"
         >
           {activeFocusKey === "services" && <ServicesFocusView />}

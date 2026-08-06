@@ -1,28 +1,13 @@
 "use client";
 
-import React, { useState, useMemo, useRef, useEffect } from "react";
-import { Search, Sparkles, Code, Database, ArrowRight, CheckCircle2, Layers, Cpu } from "lucide-react";
+import React, { useState, useMemo } from "react";
+import { Search, Code, Database, ArrowRight, CheckCircle2 } from "lucide-react";
 import { useFocusMode } from "@/providers/focus-mode-provider";
 
 export default function ServicesFocusView() {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState<"services" | "tech" | "cloud">("services");
-  const { openFocus, saveScrollPosition, getScrollPosition } = useFocusMode();
-  const tabContentRef = useRef<HTMLDivElement | null>(null);
-
-  // Per-tab scroll memory
-  useEffect(() => {
-    const savedTop = getScrollPosition(`services-tab-${activeTab}`);
-    if (tabContentRef.current) {
-      tabContentRef.current.scrollTop = savedTop;
-    }
-  }, [activeTab, getScrollPosition]);
-
-  const handleTabScroll = () => {
-    if (tabContentRef.current) {
-      saveScrollPosition(`services-tab-${activeTab}`, tabContentRef.current.scrollTop);
-    }
-  };
+  const { openFocus } = useFocusMode();
 
   const servicesList = [
     { title: "Website Development", category: "Web Engineering", desc: "Custom responsive websites built with Next.js, React, and WebGL." },
@@ -96,7 +81,7 @@ export default function ServicesFocusView() {
 
   return (
     <div className="space-y-4">
-      {/* Header Banner (Compact padding to maximize usable content space) */}
+      {/* Header Banner */}
       <div className="p-4 rounded-xl bg-gradient-to-r from-space-black via-space-black to-space-black border border-cyan-glow/30 backdrop-blur-xl relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl md:text-2xl font-bold font-syne text-white mb-1">
@@ -154,12 +139,8 @@ export default function ServicesFocusView() {
         </button>
       </div>
 
-      {/* Tab Content Area with Per-Tab Scroll Memory */}
-      <div
-        ref={tabContentRef}
-        onScroll={handleTabScroll}
-        className="max-h-[62vh] overflow-y-auto focus-scrollbar pr-1"
-      >
+      {/* Single Unified Tab Content Area */}
+      <div className="w-full">
         {activeTab === "services" && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
             {filteredServices.map((srv, idx) => (

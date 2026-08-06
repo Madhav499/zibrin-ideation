@@ -3,11 +3,13 @@
 import { useEffect, useRef } from "react";
 import { useWebglEngine } from "@/providers/webgl-engine-provider";
 import { useFocusMode } from "@/providers/focus-mode-provider";
+import { useLenis } from "@/providers/lenis-provider";
 import { HOME_SCROLL_Z_MIN, HOME_SCROLL_Z_MAX } from "@/lib/world-config";
 
 export default function ScrollWorldSync() {
   const { setScrollTargetZ, targetZ } = useWebglEngine();
   const { activeFocusKey } = useFocusMode();
+  const lenis = useLenis();
   const currentVirtualZ = useRef<number>(HOME_SCROLL_Z_MIN);
   const touchStartY = useRef<number | null>(null);
 
@@ -16,14 +18,24 @@ export default function ScrollWorldSync() {
     currentVirtualZ.current = targetZ;
   }, [targetZ]);
 
+  // Pause Lenis when Focus Mode is open
+  useEffect(() => {
+    if (!lenis) return;
+    if (activeFocusKey !== null) {
+      lenis.stop();
+    } else {
+      lenis.start();
+    }
+  }, [activeFocusKey, lenis]);
+
   useEffect(() => {
     if (typeof window === "undefined") return;
 
+    // If Focus Mode is open, DO NOT attach any global wheel or touch listeners to window!
+    if (activeFocusKey !== null) return;
+
     // Helper to clamp Z between 0 (Hero) and -360 (Contact)
     const updateZ = (deltaZ: number) => {
-      // If Focus Mode overlay is active, freeze virtual Z scrolling so Focus panel can scroll internally
-      if (activeFocusKey !== null) return;
-
       const nextZ = Math.max(HOME_SCROLL_Z_MAX, Math.min(HOME_SCROLL_Z_MIN, currentVirtualZ.current + deltaZ));
       currentVirtualZ.current = nextZ;
       setScrollTargetZ(nextZ);
@@ -31,8 +43,6 @@ export default function ScrollWorldSync() {
 
     // Wheel event listener for direct 3D Z-axis camera movement
     const handleWheel = (e: WheelEvent) => {
-      if (activeFocusKey !== null) return; // Do not intercept wheel when Focus Mode is open
-
       e.preventDefault();
       const deltaZ = -e.deltaY * 0.12;
       updateZ(deltaZ);
@@ -40,14 +50,12 @@ export default function ScrollWorldSync() {
 
     // Touch events for mobile spatial navigation
     const handleTouchStart = (e: TouchEvent) => {
-      if (activeFocusKey !== null) return;
       if (e.touches.length > 0) {
         touchStartY.current = e.touches[0].clientY;
       }
     };
 
     const handleTouchMove = (e: TouchEvent) => {
-      if (activeFocusKey !== null) return;
       if (touchStartY.current === null || e.touches.length === 0) return;
       const currentY = e.touches[0].clientY;
       const diffY = touchStartY.current - currentY;
@@ -63,7 +71,6 @@ export default function ScrollWorldSync() {
 
     // Keyboard navigation
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (activeFocusKey !== null) return;
       if (["ArrowDown", "PageDown", " "].includes(e.key)) {
         e.preventDefault();
         updateZ(-25);
