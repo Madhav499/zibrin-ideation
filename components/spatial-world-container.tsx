@@ -27,6 +27,16 @@ const BASE_WORLD_SCALE: Record<WorldKey, number> = {
   contact: 0.95,
 };
 
+const WORLD_Y_OFFSET: Record<WorldKey, number> = {
+  hero: 0,
+  about: 108,
+  services: 0,
+  process: 0,
+  portfolio: 0,
+  blog: 0,
+  contact: 0,
+};
+
 function SpatialPlaneWrapper({ worldKey, children }: SpatialPlaneWrapperProps) {
   const { cameraZ } = useWebglEngine();
   const worldZ = WORLD_Z[worldKey];
@@ -41,17 +51,17 @@ function SpatialPlaneWrapper({ worldKey, children }: SpatialPlaneWrapperProps) {
       const vh = window.innerHeight;
 
       // Safe margins:
-      // Desktop (>= 1024px): Top ~80px, Bottom ~80px (Total 160px)
-      // Tablet (640px - 1023px): Top ~60px, Bottom ~60px (Total 120px)
-      // Mobile (< 640px): Top ~40px, Bottom ~40px (Total 80px)
-      let topMargin = 80;
-      let bottomMargin = 80;
+      // Desktop (>= 1024px): Top ~100px (navbar buffer), Bottom ~60px
+      // Tablet (640px - 1023px): Top ~90px, Bottom ~50px
+      // Mobile (< 640px): Top ~80px, Bottom ~40px
+      let topMargin = 100;
+      let bottomMargin = 60;
       if (vw < 640) {
-        topMargin = 40;
+        topMargin = 80;
         bottomMargin = 40;
       } else if (vw < 1024) {
-        topMargin = 60;
-        bottomMargin = 60;
+        topMargin = 90;
+        bottomMargin = 50;
       }
 
       const availableHeight = Math.max(200, vh - topMargin - bottomMargin);
@@ -79,6 +89,7 @@ function SpatialPlaneWrapper({ worldKey, children }: SpatialPlaneWrapperProps) {
 
   const baseScale = BASE_WORLD_SCALE[worldKey] ?? 1.0;
   const effectiveFocalScale = baseScale * fitScale;
+  const yOffset = WORLD_Y_OFFSET[worldKey] ?? 0;
 
   // Camera offset in webgl engine is 18 (camera sits at worldZ + 18 when focused)
   // Distance from camera to plane focal z:
@@ -130,7 +141,7 @@ function SpatialPlaneWrapper({ worldKey, children }: SpatialPlaneWrapperProps) {
     <div
       className="absolute inset-0 flex items-center justify-center transition-all duration-75 ease-out"
       style={{
-        transform: `scale(${scale}) translateZ(${translateZ}px)`,
+        transform: `scale(${scale}) translateY(${yOffset}px) translateZ(${translateZ}px)`,
         opacity: opacity,
         filter: blur > 0.5 ? `blur(${blur}px)` : "none",
         pointerEvents: pointerEvents,
