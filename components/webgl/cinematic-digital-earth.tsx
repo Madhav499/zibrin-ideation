@@ -1,239 +1,155 @@
 "use client";
 
-import React, { useRef, useEffect, useState, useMemo } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
-import * as THREE from "three";
+import React, { useEffect, useRef, useState } from "react";
 import { ExternalLink } from "lucide-react";
 
-// Official High-Resolution NASA Satellite Texture URLs (NASA Blue Marble & Black Marble)
-const NASA_ASSET_URLS = {
-  day: "https://raw.githubusercontent.com/vasturiano/three-globe/master/example/img/earth-blue-marble.jpg",
-  night: "https://raw.githubusercontent.com/vasturiano/three-globe/master/example/img/earth-night.jpg",
-  topology: "https://raw.githubusercontent.com/vasturiano/three-globe/master/example/img/earth-topology.png",
-  water: "https://raw.githubusercontent.com/vasturiano/three-globe/master/example/img/earth-water.png",
-};
-
-// Physical Atmospheric Rayleigh Scattering Shader Material
-const AtmosphericRayleighShader = {
-  vertexShader: `
-    varying vec3 vNormal;
-    varying vec3 vEyeVector;
-    void main() {
-      vNormal = normalize(normalMatrix * normal);
-      vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-      vEyeVector = normalize(-mvPosition.xyz);
-      gl_Position = projectionMatrix * mvPosition;
-    }
-  `,
-  fragmentShader: `
-    varying vec3 vNormal;
-    varying vec3 vEyeVector;
-    uniform vec3 color;
-    void main() {
-      float intensity = pow(0.65 - dot(vNormal, vEyeVector), 3.2);
-      gl_FragColor = vec4(color, intensity * 0.75);
-    }
-  `,
-};
-
-function PhotorealisticNASAEarth({ isHovered, onZoomChange }: { isHovered: boolean; onZoomChange: (zoomed: boolean) => void }) {
-  const earthGroupRef = useRef<THREE.Group>(null);
-  const earthMeshRef = useRef<THREE.Mesh>(null);
-  const cloudMeshRef = useRef<THREE.Mesh>(null);
-  const markerRef = useRef<THREE.Group>(null);
-
-  const [textures, setTextures] = useState<{
-    dayMap: THREE.Texture | null;
-    nightMap: THREE.Texture | null;
-    topologyMap: THREE.Texture | null;
-    waterMap: THREE.Texture | null;
-  }>({
-    dayMap: null,
-    nightMap: null,
-    topologyMap: null,
-    waterMap: null,
-  });
-
-  // Load Real NASA Satellite Assets asynchronously with fallback textures
-  useEffect(() => {
-    const loader = new THREE.TextureLoader();
-    loader.setCrossOrigin("anonymous");
-
-    loader.load(NASA_ASSET_URLS.day, (tex) => {
-      tex.wrapS = THREE.RepeatWrapping;
-      setTextures((prev) => ({ ...prev, dayMap: tex }));
-    });
-
-    loader.load(NASA_ASSET_URLS.night, (tex) => {
-      tex.wrapS = THREE.RepeatWrapping;
-      setTextures((prev) => ({ ...prev, nightMap: tex }));
-    });
-
-    loader.load(NASA_ASSET_URLS.topology, (tex) => {
-      tex.wrapS = THREE.RepeatWrapping;
-      setTextures((prev) => ({ ...prev, topologyMap: tex }));
-    });
-
-    loader.load(NASA_ASSET_URLS.water, (tex) => {
-      tex.wrapS = THREE.RepeatWrapping;
-      setTextures((prev) => ({ ...prev, waterMap: tex }));
-    });
-  }, []);
-
-  // Atmospheric Scattering Material
-  const atmosphereMaterial = useMemo(() => {
-    return new THREE.ShaderMaterial({
-      vertexShader: AtmosphericRayleighShader.vertexShader,
-      fragmentShader: AtmosphericRayleighShader.fragmentShader,
-      uniforms: {
-        color: { value: new THREE.Color(0x3ef2ff) },
-      },
-      blending: THREE.AdditiveBlending,
-      side: THREE.BackSide,
-      transparent: true,
-    });
-  }, []);
-
-  // Rajkot coordinates on 3D Earth sphere radius = 1.3
-  // Lat: 22.3039° N, Lon: 70.8022° E
-  const lat = 22.3039;
-  const lon = 70.8022;
-  const phi = (90 - lat) * (Math.PI / 180);
-  const theta = (lon + 180) * (Math.PI / 180);
-
-  const radius = 1.305;
-  const markerX = -(radius * Math.sin(phi) * Math.cos(theta));
-  const markerY = radius * Math.cos(phi);
-  const markerZ = radius * Math.sin(phi) * Math.sin(theta);
-
-  // Target rotation for Rajkot reveal
-  const targetRotationY = -((lon * Math.PI) / 180) - Math.PI / 2;
-  const targetRotationX = (lat * Math.PI) / 180;
-
-  useFrame((state) => {
-    if (!earthGroupRef.current || !earthMeshRef.current || !cloudMeshRef.current) return;
-
-    const time = state.clock.getElapsedTime();
-
-    // 40-Second Google Earth Studio Reveal Sequence
-    // 0 -> 26s: Continuous smooth global orbit rotation (~40s per revolution)
-    // 26 -> 30s: Eased rotation slowing & turn to Rajkot, Gujarat, India
-    // 30 -> 35s: Hold on Rajkot Headquarters reveal
-    // 35 -> 40s: Smooth zoom back out to global orbit
-    const cycle = time % 40;
-    const isZoomed = cycle >= 26 && cycle < 35;
-    onZoomChange(isZoomed);
-
-    if (cycle < 24) {
-      earthMeshRef.current.rotation.y = time * 0.16;
-      cloudMeshRef.current.rotation.y = time * 0.12;
-    } else if (cycle >= 24 && cycle < 35) {
-      // Eased smooth transition to Rajkot, India
-      earthMeshRef.current.rotation.y += (targetRotationY - earthMeshRef.current.rotation.y) * 0.04;
-      earthMeshRef.current.rotation.x += (targetRotationX - earthMeshRef.current.rotation.x) * 0.04;
-      cloudMeshRef.current.rotation.y = earthMeshRef.current.rotation.y * 0.98;
-    } else {
-      // Resume global orbit
-      earthMeshRef.current.rotation.x += (0 - earthMeshRef.current.rotation.x) * 0.04;
-      earthMeshRef.current.rotation.y += 0.003;
-      cloudMeshRef.current.rotation.y += 0.002;
-    }
-
-    // Camera distance interpolation
-    const targetCamZ = isZoomed ? 2.45 : 3.8;
-    state.camera.position.z += (targetCamZ - state.camera.position.z) * 0.04;
-
-    // Beacon pulse animation
-    if (markerRef.current) {
-      const pulse = 1 + Math.sin(time * 5) * 0.2;
-      markerRef.current.scale.setScalar(isZoomed ? pulse * 1.25 : pulse);
-    }
-  });
-
-  return (
-    <group ref={earthGroupRef}>
-      {/* 1. Main NASA Satellite PBR Earth Sphere */}
-      <mesh ref={earthMeshRef}>
-        <sphereGeometry args={[1.3, 64, 64]} />
-        <meshStandardMaterial
-          map={textures.dayMap ?? undefined}
-          emissiveMap={textures.nightMap ?? undefined}
-          emissive={0xfffaed}
-          emissiveIntensity={isHovered ? 1.5 : 1.2}
-          bumpMap={textures.topologyMap ?? undefined}
-          bumpScale={0.04}
-          roughnessMap={textures.waterMap ?? undefined}
-          roughness={0.35}
-          metalness={0.1}
-        />
-
-        {/* 3D Holographic Rajkot HQ Vertical Light Beam & Beacon */}
-        <group ref={markerRef} position={[markerX, markerY, markerZ]}>
-          {/* Vertical Light Beam */}
-          <mesh position={[0, 0.25, 0]}>
-            <cylinderGeometry args={[0.015, 0.08, 0.5, 16]} />
-            <meshBasicMaterial color={0x3ef2ff} transparent opacity={0.65} blending={THREE.AdditiveBlending} />
-          </mesh>
-
-          {/* Core Glowing Beacon Dot */}
-          <mesh>
-            <sphereGeometry args={[0.035, 16, 16]} />
-            <meshBasicMaterial color={0x3ef2ff} />
-          </mesh>
-
-          {/* Glowing Beacon Pulse Rings */}
-          <mesh rotation={[Math.PI / 2, 0, 0]}>
-            <ringGeometry args={[0.05, 0.09, 32]} />
-            <meshBasicMaterial color={0x3ef2ff} transparent opacity={0.85} side={THREE.DoubleSide} />
-          </mesh>
-
-          <mesh rotation={[Math.PI / 2, 0, 0]}>
-            <ringGeometry args={[0.1, 0.14, 32]} />
-            <meshBasicMaterial color={0x8b5cff} transparent opacity={0.5} side={THREE.DoubleSide} />
-          </mesh>
-
-          <pointLight color={0x3ef2ff} intensity={4.0} distance={2.0} />
-        </group>
-      </mesh>
-
-      {/* 2. Independent Cloud Layer Sphere */}
-      <mesh ref={cloudMeshRef}>
-        <sphereGeometry args={[1.32, 48, 48]} />
-        <meshStandardMaterial
-          color={0xffffff}
-          transparent
-          opacity={0.22}
-          blending={THREE.AdditiveBlending}
-        />
-      </mesh>
-
-      {/* 3. Atmospheric Rayleigh Scattering Outer Shell */}
-      <mesh material={atmosphereMaterial}>
-        <sphereGeometry args={[1.36, 32, 32]} />
-      </mesh>
-
-      {/* 4. Deep Space Background Starfield */}
-      <points>
-        <bufferGeometry>
-          <bufferAttribute
-            attach="attributes-position"
-            args={[
-              new Float32Array(
-                Array.from({ length: 350 * 3 }, () => (Math.random() - 0.5) * 24)
-              ),
-              3,
-            ]}
-          />
-        </bufferGeometry>
-        <pointsMaterial size={0.05} color={0xffffff} transparent opacity={0.7} />
-      </points>
-    </group>
-  );
+declare global {
+  interface Window {
+    maplibregl?: any;
+  }
 }
 
 export default function CinematicDigitalEarth() {
-  const [isHovered, setIsHovered] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<any>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
   const [isHQZoomed, setIsHQZoomed] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+
+  useEffect(() => {
+    let animId: number;
+    let mapInstance: any = null;
+
+    // Dynamically load MapLibre GL JS 3D Satellite Globe library
+    const loadScript = () => {
+      if (window.maplibregl) {
+        initGlobe();
+        return;
+      }
+
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = "https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css";
+      document.head.appendChild(link);
+
+      const script = document.createElement("script");
+      script.src = "https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js";
+      script.onload = () => {
+        initGlobe();
+      };
+      document.head.appendChild(script);
+    };
+
+    const initGlobe = () => {
+      if (!containerRef.current || mapRef.current) return;
+
+      const maplibregl = window.maplibregl;
+      if (!maplibregl) return;
+
+      mapInstance = new maplibregl.Map({
+        container: containerRef.current,
+        style: {
+          version: 8,
+          sources: {
+            "esri-satellite": {
+              type: "raster",
+              tiles: [
+                "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+              ],
+              tileSize: 256,
+              attribution: "Esri, Maxar, Earthstar Geographics",
+            },
+          },
+          layers: [
+            {
+              id: "esri-satellite-layer",
+              type: "raster",
+              source: "esri-satellite",
+              minzoom: 0,
+              maxzoom: 22,
+            },
+          ],
+          sky: {
+            "sky-color": "#020817",
+            "horizon-color": "#1e3a8a",
+            "fog-color": "#030712",
+          },
+        },
+        projection: "globe", // Real 3D Earth Globe Projection
+        center: [20, 20],
+        zoom: 1.2,
+        pitch: 0,
+        bearing: 0,
+        interactive: false, // Pure cinematic experience
+        attributionControl: false,
+      });
+
+      mapRef.current = mapInstance;
+
+      mapInstance.on("load", () => {
+        setIsLoaded(true);
+        startCinematicLoop(mapInstance);
+      });
+    };
+
+    const startCinematicLoop = (map: any) => {
+      let startTime = performance.now();
+
+      const loop = (now: number) => {
+        const elapsed = (now - startTime) / 1000;
+        const cycle = elapsed % 40; // 40-second Google Earth Studio loop
+
+        if (cycle < 24) {
+          // Phase 1: Continuous Smooth Global 3D Orbit Rotation
+          setIsHQZoomed(false);
+          const currentLng = 20 + elapsed * 9.0;
+          map.setCenter([currentLng, 15]);
+          map.setZoom(1.2);
+          map.setPitch(0);
+        } else if (cycle >= 24 && cycle < 34) {
+          // Phase 2: Smooth FlyTo Zoom to Rajkot, Gujarat, India HQ
+          if (!isHQZoomed) {
+            setIsHQZoomed(true);
+            map.flyTo({
+              center: [70.8022, 22.3039], // Rajkot, Gujarat, India
+              zoom: 8.5,
+              pitch: 55,
+              bearing: 25,
+              duration: 4000, // 4-second smooth satellite camera push
+              essential: true,
+            });
+          }
+        } else {
+          // Phase 3: FlyTo Zoom Back to Global Orbit
+          if (isHQZoomed) {
+            setIsHQZoomed(false);
+            map.flyTo({
+              center: [70.8022 + 40, 20],
+              zoom: 1.2,
+              pitch: 0,
+              bearing: 0,
+              duration: 3500,
+              essential: true,
+            });
+          }
+        }
+
+        animId = requestAnimationFrame(loop);
+      };
+
+      animId = requestAnimationFrame(loop);
+    };
+
+    loadScript();
+
+    return () => {
+      if (animId) cancelAnimationFrame(animId);
+      if (mapInstance) {
+        mapInstance.remove();
+        mapRef.current = null;
+      }
+    };
+  }, []);
 
   return (
     <div
@@ -241,18 +157,39 @@ export default function CinematicDigitalEarth() {
       onMouseLeave={() => setIsHovered(false)}
       className="w-full h-36 sm:h-40 rounded-xl bg-space-black/90 border border-cyan-glow/30 backdrop-blur-xl relative overflow-hidden group shadow-[0_0_20px_rgba(62,242,255,0.15)] transition-all duration-300 hover:border-cyan-glow/60"
     >
-      {/* 3D WebGL Canvas */}
-      <Canvas
-        camera={{ position: [0, 0, 3.8], fov: 42 }}
-        gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
-        style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
-      >
-        <ambientLight intensity={0.5} />
-        <directionalLight position={[6, 4, 6]} intensity={2.2} color={0xffffff} />
-        <pointLight position={[-6, -4, -6]} intensity={0.8} color={0x8b5cff} />
+      {/* 3D Photorealistic Satellite Globe Container */}
+      <div
+        ref={containerRef}
+        className="absolute inset-0 w-full h-full"
+        style={{
+          filter: isHovered ? "brightness(1.1) contrast(1.05)" : "none",
+          transition: "filter 0.3s ease",
+        }}
+      />
 
-        <PhotorealisticNASAEarth isHovered={isHovered} onZoomChange={setIsHQZoomed} />
-      </Canvas>
+      {/* Loading Skeleton */}
+      {!isLoaded && (
+        <div className="absolute inset-0 bg-space-black flex flex-col items-center justify-center gap-2">
+          <div className="w-6 h-6 rounded-full border-2 border-cyan-glow border-t-transparent animate-spin" />
+          <span className="text-[10px] font-mono text-cyan-glow tracking-widest uppercase">
+            Loading Real Satellite 3D Earth...
+          </span>
+        </div>
+      )}
+
+      {/* Holographic Rajkot HQ Beacon Marker (Overlay when zoomed) */}
+      {isHQZoomed && (
+        <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-10">
+          <div className="relative flex flex-col items-center">
+            {/* Vertical Light Beam */}
+            <div className="w-0.5 h-12 bg-gradient-to-b from-cyan-glow via-cyan-glow/60 to-transparent animate-pulse" />
+            {/* Core Beacon Dot */}
+            <div className="w-3 h-3 rounded-full bg-cyan-glow shadow-[0_0_15px_#3ef2ff] animate-ping" />
+            {/* Pulsing Outer Rings */}
+            <div className="absolute w-8 h-8 rounded-full border border-cyan-glow/80 animate-ping" style={{ animationDuration: "2s" }} />
+          </div>
+        </div>
+      )}
 
       {/* HUD Floating Glass Label */}
       <div
@@ -265,7 +202,7 @@ export default function CinematicDigitalEarth() {
           <div>
             <div className="text-[10px] font-mono font-bold text-white leading-tight flex items-center gap-1">
               <span>ZIBRIN INFOTECH HQ</span>
-              {isHQZoomed && <span className="text-[9px] text-cyan-glow font-normal">(LOCATED)</span>}
+              {isHQZoomed && <span className="text-[9px] text-cyan-glow font-normal">(SATELLITE LOCATED)</span>}
             </div>
             <div className="text-[9px] font-mono text-cyan-glow/90">
               Rajkot, Gujarat, India
@@ -277,7 +214,7 @@ export default function CinematicDigitalEarth() {
           href="https://maps.google.com/?q=Rajkot+Gujarat+India"
           target="_blank"
           rel="noopener noreferrer"
-          className="px-2 py-1 rounded bg-cyan-glow/10 border border-cyan-glow/30 text-[9px] font-mono text-cyan-glow hover:bg-cyan-glow hover:text-space-black transition-all flex items-center gap-1 shrink-0"
+          className="px-2 py-1 rounded bg-cyan-glow/10 border border-cyan-glow/30 text-[9px] font-mono text-cyan-glow hover:bg-cyan-glow hover:text-space-black transition-all flex items-center gap-1 shrink-0 pointer-events-auto"
         >
           <span>Maps</span>
           <ExternalLink className="w-2.5 h-2.5" />
