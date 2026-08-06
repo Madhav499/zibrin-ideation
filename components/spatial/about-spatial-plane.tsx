@@ -55,6 +55,16 @@ const CORE_VALUES: CoreValueItem[] = [
 function CoreValuesOrbit() {
   const [rotationAngle, setRotationAngle] = useState(0);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // Slow continuous rotation (~1 revolution per 100 seconds)
   useEffect(() => {
@@ -76,13 +86,13 @@ function CoreValuesOrbit() {
   }, [hoveredIndex]);
 
   const activeItem = hoveredIndex !== null ? CORE_VALUES[hoveredIndex] : null;
+  const ActiveIcon = activeItem ? activeItem.icon : null;
 
   // Calculate smart panel positioning above hovered node
   let panelPos = { x: 0, y: -120 };
   if (hoveredIndex !== null) {
     const angleDeg = (hoveredIndex * 45 + rotationAngle) % 360;
     const angleRad = (angleDeg * Math.PI) / 180;
-    const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
     const radiusX = isMobile ? 140 : 210;
     const radiusY = isMobile ? 95 : 110;
 
@@ -140,8 +150,8 @@ function CoreValuesOrbit() {
           // Calculate node coordinates on elliptical orbit path
           const angleDeg = (idx * 45 + rotationAngle) % 360;
           const angleRad = (angleDeg * Math.PI) / 180;
-          const radiusX = typeof window !== "undefined" && window.innerWidth < 640 ? 140 : 210;
-          const radiusY = typeof window !== "undefined" && window.innerWidth < 640 ? 95 : 110;
+          const radiusX = isMobile ? 140 : 210;
+          const radiusY = isMobile ? 95 : 110;
 
           const x = Math.cos(angleRad) * radiusX;
           const y = Math.sin(angleRad) * radiusY;
@@ -176,7 +186,7 @@ function CoreValuesOrbit() {
         })}
 
         {/* Floating Glass Information Panel (Positioned ABOVE Hovered Node, Layer z-50) */}
-        {activeItem && (
+        {activeItem && ActiveIcon && (
           <div
             style={{
               transform: `translate(${panelPos.x}px, ${panelPos.y}px)`,
@@ -186,7 +196,7 @@ function CoreValuesOrbit() {
             <div className="flex items-center justify-between mb-2 pb-2 border-b border-white/10">
               <div className="flex items-center gap-2">
                 <div className="p-1.5 rounded-lg bg-cyan-glow/20 border border-cyan-glow/50 text-cyan-glow">
-                  {React.createElement(activeItem.icon, { className: "w-4 h-4" })}
+                  <ActiveIcon className="w-4 h-4" />
                 </div>
                 <h4 className="text-xs sm:text-sm font-bold font-syne text-white">
                   {activeItem.title}
