@@ -24,7 +24,7 @@ import {
   HOME_SCROLL_Z_MIN,
 } from "@/lib/world-config";
 import type { WorldKey } from "@/lib/world-config";
-import { qualityManager, QualityProfile } from "@/lib/quality-manager";
+import { qualityManager, QualityProfile, QualityTier } from "@/lib/quality-manager";
 import { useFocusMode } from "@/providers/focus-mode-provider";
 
 interface WebglEngineContextType {
@@ -33,6 +33,7 @@ interface WebglEngineContextType {
   scrollTargetZ: number;
   cameraZ: number;
   qualityProfile: QualityProfile;
+  qualityTier: QualityTier;
   isHomeScroll: boolean;
   setWorld: (key: WorldKey) => void;
   setScrollTargetZ: (z: number) => void;
@@ -45,6 +46,7 @@ const WebglEngineContext = createContext<WebglEngineContextType>({
   scrollTargetZ: HOME_SCROLL_Z_MIN,
   cameraZ: HOME_SCROLL_Z_MIN + CAMERA_OFFSET,
   qualityProfile: qualityManager.getProfile(),
+  qualityTier: qualityManager.getProfile().tier,
   isHomeScroll: true,
   setWorld: () => {},
   setScrollTargetZ: () => {},
@@ -128,6 +130,7 @@ export default function WebglEngineProvider({ children }: { children: React.Reac
         scrollTargetZ,
         cameraZ,
         qualityProfile,
+        qualityTier: qualityProfile.tier,
         isHomeScroll,
         setWorld,
         setScrollTargetZ,
