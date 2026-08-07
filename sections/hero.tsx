@@ -4,14 +4,17 @@ import React, { useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
 import { ArrowRight, Globe } from "lucide-react";
 import gsap from "gsap";
+import { useFocusMode } from "@/providers/focus-mode-provider";
+import { WORLD_Z } from "@/lib/world-config";
 
 const HeroCanvas = dynamic(() => import("@/features/hero/hero-canvas"), { ssr: false });
 
 export default function HeroSection() {
+  const { launchDirectFocus } = useFocusMode();
   const headingRef = useRef<HTMLHeadingElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const btn1Ref = useRef<HTMLAnchorElement | null>(null);
-  const btn2Ref = useRef<HTMLAnchorElement | null>(null);
+  const btn1Ref = useRef<HTMLButtonElement | null>(null);
+  const btn2Ref = useRef<HTMLButtonElement | null>(null);
   const badgeRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -73,6 +76,24 @@ export default function HeroSection() {
   const titleString = "ENGINEERING";
   const futureString = "THE FUTURE";
 
+  const handleServicesClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (btn2Ref.current) {
+      btn2Ref.current.classList.add("animate-cyan-pulse");
+      setTimeout(() => btn2Ref.current?.classList.remove("animate-cyan-pulse"), 450);
+    }
+    launchDirectFocus("services", "/services", WORLD_Z.services);
+  };
+
+  const handleContactClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (btn1Ref.current) {
+      btn1Ref.current.classList.add("animate-cyan-pulse");
+      setTimeout(() => btn1Ref.current?.classList.remove("animate-cyan-pulse"), 450);
+    }
+    launchDirectFocus("contact", "/contact", WORLD_Z.contact);
+  };
+
   return (
     <section ref={containerRef} className="relative w-full min-h-screen flex flex-col justify-center overflow-hidden pt-20 transform-gpu-3d">
       <HeroCanvas />
@@ -120,22 +141,22 @@ export default function HeroSection() {
           </p>
 
           <div className="flex flex-col sm:flex-row flex-wrap gap-4">
-            <a
-              ref={btn1Ref}
-              href="/builder"
-              className="px-6 sm:px-8 py-3.5 bg-gradient-to-r from-electric-blue to-neon-violet text-white text-xs font-mono tracking-widest rounded border border-cyan-glow/30 flex items-center justify-center gap-2 hover:scale-105 transition-all duration-300 shadow-neon-blue cursor-pointer"
-            >
-              <span>START YOUR JOURNEY</span>
-              <ArrowRight className="w-4 h-4" />
-            </a>
-            <a
+            <button
               ref={btn2Ref}
-              href="/services"
-              className="px-6 sm:px-8 py-3.5 bg-white/5 border border-white/10 hover:border-cyan-glow/40 hover:bg-cyan-glow/5 text-white text-xs font-mono tracking-widest rounded flex items-center justify-center gap-2 transition-all duration-300 cursor-pointer"
+              onClick={handleServicesClick}
+              className="px-6 sm:px-8 py-3.5 bg-gradient-to-r from-cyan-glow/20 via-electric-blue/30 to-neon-violet/30 hover:from-cyan-glow hover:to-electric-blue text-white hover:text-space-black font-bold text-xs font-mono tracking-widest rounded border border-cyan-glow/50 flex items-center justify-center gap-2 hover:scale-105 transition-all duration-300 shadow-[0_0_20px_rgba(62,242,255,0.3)] cursor-pointer"
             >
               <span>EXPLORE SERVICES</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+            <button
+              ref={btn1Ref}
+              onClick={handleContactClick}
+              className="px-6 sm:px-8 py-3.5 bg-white/5 border border-white/10 hover:border-cyan-glow/40 hover:bg-cyan-glow/10 text-white text-xs font-mono tracking-widest rounded flex items-center justify-center gap-2 transition-all duration-300 cursor-pointer"
+            >
+              <span>CONNECT WITH US</span>
               <Globe className="w-4 h-4 text-cyan-glow" />
-            </a>
+            </button>
           </div>
         </div>
       </div>

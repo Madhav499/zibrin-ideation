@@ -16,10 +16,26 @@
   --animate-float: float-animation 6s ease-in-out infinite;
   --animate-grid-drift: grid-drift 40s linear infinite;
   --animate-logo-breath: logo-breath 4s ease-in-out infinite;
+  --animate-cyan-pulse: cyan-energy-pulse 0.4s ease-out forwards;
   
   --shadow-neon-cyan: 0 0 15px rgba(62, 242, 255, 0.4);
   --shadow-neon-violet: 0 0 15px rgba(139, 92, 255, 0.4);
   --shadow-neon-blue: 0 0 15px rgba(47, 128, 255, 0.4);
+}
+
+@keyframes cyan-energy-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(62, 242, 255, 0.8), 0 0 10px rgba(62, 242, 255, 0.4);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 35px 12px rgba(62, 242, 255, 0.4), 0 0 50px rgba(139, 92, 255, 0.3);
+    transform: scale(1.04);
+  }
+  100% {
+    box-shadow: 0 0 20px 4px rgba(62, 242, 255, 0.2);
+    transform: scale(1);
+  }
 }
 
 @keyframes logo-breath {

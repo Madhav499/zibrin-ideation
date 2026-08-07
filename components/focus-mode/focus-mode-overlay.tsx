@@ -112,11 +112,11 @@ export default function FocusModeOverlay() {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-0 md:p-4 lg:p-6 bg-[#05070F]/95 transition-opacity duration-300 animate-in fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center p-0 md:p-4 lg:p-6 bg-[#05070F] transition-opacity duration-300 animate-in fade-in"
       onWheel={handleWheel}
     >
       <div
-        className="absolute inset-0 bg-[#05070F]/40 pointer-events-auto cursor-pointer"
+        className="absolute inset-0 bg-[#05070F] pointer-events-auto cursor-pointer"
         onClick={closeFocus}
         aria-hidden="true"
       />

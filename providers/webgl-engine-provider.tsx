@@ -38,6 +38,7 @@ interface WebglEngineContextType {
   setWorld: (key: WorldKey) => void;
   setScrollTargetZ: (z: number) => void;
   setCameraZ: (z: number) => void;
+  instantTeleport: (z: number) => void;
 }
 
 const WebglEngineContext = createContext<WebglEngineContextType>({
@@ -51,6 +52,7 @@ const WebglEngineContext = createContext<WebglEngineContextType>({
   setWorld: () => {},
   setScrollTargetZ: () => {},
   setCameraZ: () => {},
+  instantTeleport: () => {},
 });
 
 export const useWebglEngine = () => useContext(WebglEngineContext);
@@ -122,6 +124,16 @@ export default function WebglEngineProvider({ children }: { children: React.Reac
     setIsHomeScroll(true);
   }, []);
 
+  const instantTeleport = useCallback((z: number) => {
+    setScrollTargetZState(z);
+    setTargetZ(z);
+    setCameraZ(z + CAMERA_OFFSET);
+    setIsHomeScroll(true);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("webgl-instant-teleport", { detail: { z } }));
+    }
+  }, []);
+
   return (
     <WebglEngineContext.Provider
       value={{
@@ -135,6 +147,7 @@ export default function WebglEngineProvider({ children }: { children: React.Reac
         setWorld,
         setScrollTargetZ,
         setCameraZ,
+        instantTeleport,
       }}
     >
       <RouteWorldSync />

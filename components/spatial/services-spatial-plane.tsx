@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Sparkles, ArrowRight, Layers, Cpu, Database, CheckCircle2 } from "lucide-react";
+import { Sparkles, ArrowRight, Layers, Cpu, Database } from "lucide-react";
 import { useFocusMode } from "@/providers/focus-mode-provider";
 
 export default function ServicesSpatialPlane() {
@@ -15,9 +15,9 @@ export default function ServicesSpatialPlane() {
   ];
 
   return (
-    <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 py-3 sm:py-5 flex flex-col items-center text-center">
+    <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 py-2 sm:py-4 flex flex-col items-center text-center">
       {/* Badge */}
-      <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-glow/10 border border-cyan-glow/30 backdrop-blur-md mb-3 sm:mb-4">
+      <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-glow/10 border border-cyan-glow/30 backdrop-blur-md mb-2.5 sm:mb-3">
         <Sparkles className="w-3.5 h-3.5 text-cyan-glow" />
         <span className="text-[10px] sm:text-xs font-mono tracking-widest text-cyan-glow uppercase font-semibold">
           SERVICES & CAPABILITIES // DISCOVERY
@@ -25,7 +25,7 @@ export default function ServicesSpatialPlane() {
       </div>
 
       {/* Main Heading */}
-      <h2 className="text-2xl sm:text-4xl lg:text-5xl font-bold font-syne tracking-tight text-white mb-3 sm:mb-4">
+      <h2 className="text-2xl sm:text-4xl lg:text-5xl font-bold font-syne tracking-tight text-white mb-2.5 sm:mb-3">
         Solutions Without Limits. <br />
         <span className="bg-gradient-to-r from-cyan-glow via-electric-blue to-neon-violet bg-clip-text text-transparent">
           Concepts to Reality.
@@ -33,12 +33,12 @@ export default function ServicesSpatialPlane() {
       </h2>
 
       {/* Short Description */}
-      <p className="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed font-light mb-4 sm:mb-6">
+      <p className="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed font-light mb-4 sm:mb-5">
         We don't define our work by a list of services. We define it by the problems we solve and the ideas we bring to life. Explore our capabilities below.
       </p>
 
       {/* 4 Preview Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4 w-full mb-6 sm:mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4 w-full mb-5 sm:mb-6">
         {previewServices.map((item, idx) => {
           const IconComp = item.icon;
           return (

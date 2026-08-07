@@ -25,6 +25,26 @@ export default function CinematicCameraController() {
     targetZRef.current = targetZ;
   }, [targetZ]);
 
+  // Listen for instant teleport signal from CTA Direct Module Launches (snaps camera invisibly behind popup mask)
+  useEffect(() => {
+    const handleTeleport = (e: Event) => {
+      const customEvent = e as CustomEvent<{ z: number }>;
+      if (customEvent.detail && typeof customEvent.detail.z === "number") {
+        const snapZ = customEvent.detail.z + CAMERA_OFFSET;
+        currentZRef.current = snapZ;
+        targetZRef.current = customEvent.detail.z;
+        velocityRef.current.z = 0;
+        camera.position.z = snapZ;
+        setCameraZ(snapZ);
+      }
+    };
+
+    window.addEventListener("webgl-instant-teleport", handleTeleport);
+    return () => {
+      window.removeEventListener("webgl-instant-teleport", handleTeleport);
+    };
+  }, [camera, setCameraZ]);
+
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       const normX = (e.clientX / window.innerWidth - 0.5) * 2;
@@ -74,7 +94,7 @@ export default function CinematicCameraController() {
       desiredZ += p * 60;
     }
 
-    // Spring-damped Z travel with acceleration/deceleration
+    // Spring-damped Z travel for manual scrolling
     const zDiff = desiredZ - currentZRef.current;
     velocityRef.current.z += zDiff * 8 * dt;
     velocityRef.current.z *= Math.pow(0.82, dt * 60);

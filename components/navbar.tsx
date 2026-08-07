@@ -3,10 +3,11 @@
 import React from "react";
 import ZibrinLogo from "@/features/logo/logo";
 import { useFocusMode } from "@/providers/focus-mode-provider";
+import { WORLD_Z } from "@/lib/world-config";
 import { ArrowUpRight, Sparkles } from "lucide-react";
 
 export default function Navbar() {
-  const { openFocus } = useFocusMode();
+  const { launchDirectFocus } = useFocusMode();
 
   return (
     <header className="fixed top-0 left-0 w-full z-40 bg-transparent py-4 md:py-6 pointer-events-none transform-gpu-3d">
@@ -27,7 +28,7 @@ export default function Navbar() {
         {/* Persistent Element 2: Floating "Get In Touch" Button (Top-Right) */}
         <div className="pointer-events-auto">
           <button
-            onClick={() => openFocus("contact")}
+            onClick={() => launchDirectFocus("contact", "/contact", WORLD_Z.contact)}
             className="group relative inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-space-black/80 border border-cyan-glow/40 hover:border-cyan-glow bg-cyan-glow/10 hover:bg-cyan-glow/20 text-xs font-mono tracking-widest text-cyan-glow hover:text-white backdrop-blur-xl transition-all duration-300 cursor-pointer shadow-[0_0_20px_rgba(62,242,255,0.25)] hover:scale-105 active:scale-95"
           >
             <Sparkles className="w-3.5 h-3.5 text-cyan-glow group-hover:rotate-12 transition-transform" />

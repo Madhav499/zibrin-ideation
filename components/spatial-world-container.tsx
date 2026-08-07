@@ -2,6 +2,7 @@
 
 import React, { useRef, useEffect, useState } from "react";
 import { useWebglEngine } from "@/providers/webgl-engine-provider";
+import { useFocusMode } from "@/providers/focus-mode-provider";
 import { WORLD_Z, WorldKey } from "@/lib/world-config";
 
 import HeroSpatialPlane from "./spatial/hero-spatial-plane";
@@ -20,7 +21,7 @@ interface SpatialPlaneWrapperProps {
 const BASE_WORLD_SCALE: Record<WorldKey, number> = {
   hero: 1.0,
   about: 0.95,
-  services: 0.90,
+  services: 0.95,
   process: 0.92,
   portfolio: 0.95,
   blog: 0.95,
@@ -39,6 +40,7 @@ const WORLD_Y_OFFSET: Record<WorldKey, number> = {
 
 function SpatialPlaneWrapper({ worldKey, children }: SpatialPlaneWrapperProps) {
   const { cameraZ } = useWebglEngine();
+  const { activeFocusKey } = useFocusMode();
   const worldZ = WORLD_Z[worldKey];
   const contentRef = useRef<HTMLDivElement | null>(null);
   const [fitScale, setFitScale] = useState(1.0);
@@ -50,10 +52,6 @@ function SpatialPlaneWrapper({ worldKey, children }: SpatialPlaneWrapperProps) {
       const vw = window.innerWidth;
       const vh = window.innerHeight;
 
-      // Safe margins:
-      // Desktop (>= 1024px): Top ~100px (navbar buffer), Bottom ~60px
-      // Tablet (640px - 1023px): Top ~90px, Bottom ~50px
-      // Mobile (< 640px): Top ~80px, Bottom ~40px
       let topMargin = 100;
       let bottomMargin = 60;
       if (vw < 640) {
@@ -91,7 +89,6 @@ function SpatialPlaneWrapper({ worldKey, children }: SpatialPlaneWrapperProps) {
   const effectiveFocalScale = baseScale * fitScale;
   const yOffset = WORLD_Y_OFFSET[worldKey] ?? 0;
 
-  // Camera offset in webgl engine is 18 (camera sits at worldZ + 18 when focused)
   // Distance from camera to plane focal z:
   const dist = cameraZ - (worldZ + 18);
 
@@ -102,49 +99,48 @@ function SpatialPlaneWrapper({ worldKey, children }: SpatialPlaneWrapperProps) {
   let translateZ = 0;
 
   if (dist > 40) {
-    // Far ahead in the future (camera hasn't reached it yet)
     scale = 0.3 * effectiveFocalScale;
     opacity = 0;
     blur = 20;
     pointerEvents = "none";
   } else if (dist > 12) {
-    // Emerging from space
-    const norm = 1 - (dist - 12) / 28; // 0 to 1
-    scale = (0.35 + norm * 0.65) * effectiveFocalScale; // 0.35 -> 1.0 * effectiveFocalScale
+    const norm = 1 - (dist - 12) / 28;
+    scale = (0.35 + norm * 0.65) * effectiveFocalScale;
     opacity = Math.max(0, Math.min(1, norm));
     blur = (1 - norm) * 16;
     pointerEvents = norm > 0.85 ? "auto" : "none";
   } else if (dist >= -12) {
-    // Focal viewing position
     scale = effectiveFocalScale;
     opacity = 1.0;
     blur = 0;
     pointerEvents = "auto";
   } else if (dist >= -50) {
-    // Zooming past (1 -> 2 -> 4 -> 8 effect)
-    const norm = (-dist - 12) / 38; // 0 to 1
+    const norm = (-dist - 12) / 38;
     scale = (1.0 + norm * 4.5) * effectiveFocalScale;
     opacity = Math.max(0, 1 - norm * 1.2);
     blur = norm * 14;
     pointerEvents = "none";
   } else {
-    // Far behind
     scale = 6.0 * effectiveFocalScale;
     opacity = 0;
     blur = 24;
     pointerEvents = "none";
   }
 
-  if (opacity <= 0.01) return null; // Performance optimization while staying mounted
+  if (opacity <= 0.01) return null;
+
+  // Disable CSS transitions during Focus Mode or instant teleport to eliminate 75ms interpolation lag
+  const isFocusActive = activeFocusKey !== null;
 
   return (
     <div
-      className="absolute inset-0 flex items-center justify-center transition-all duration-75 ease-out"
+      className="absolute inset-0 flex items-center justify-center"
       style={{
         transform: `scale(${scale}) translateY(${yOffset}px) translateZ(${translateZ}px)`,
         opacity: opacity,
         filter: blur > 0.5 ? `blur(${blur}px)` : "none",
         pointerEvents: pointerEvents,
+        transition: isFocusActive ? "none" : "all 75ms ease-out",
         willChange: "transform, opacity, filter",
       }}
     >
