@@ -31,24 +31,21 @@ export default function ScrollWorldSync() {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    // If Focus Mode is open, DO NOT attach any global wheel or touch listeners to window!
     if (activeFocusKey !== null) return;
 
-    // Helper to clamp Z between 0 (Hero) and -360 (Contact)
     const updateZ = (deltaZ: number) => {
       const nextZ = Math.max(HOME_SCROLL_Z_MAX, Math.min(HOME_SCROLL_Z_MIN, currentVirtualZ.current + deltaZ));
       currentVirtualZ.current = nextZ;
       setScrollTargetZ(nextZ);
     };
 
-    // Wheel event listener for direct 3D Z-axis camera movement
+    // Refined 15% lower scroll sensitivity: deltaY * 0.10 allows deliberate section reading before transition
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
-      const deltaZ = -e.deltaY * 0.12;
+      const deltaZ = -e.deltaY * 0.10;
       updateZ(deltaZ);
     };
 
-    // Touch events for mobile spatial navigation
     const handleTouchStart = (e: TouchEvent) => {
       if (e.touches.length > 0) {
         touchStartY.current = e.touches[0].clientY;
@@ -61,7 +58,7 @@ export default function ScrollWorldSync() {
       const diffY = touchStartY.current - currentY;
       touchStartY.current = currentY;
 
-      const deltaZ = -diffY * 0.4;
+      const deltaZ = -diffY * 0.34;
       updateZ(deltaZ);
     };
 
@@ -69,14 +66,13 @@ export default function ScrollWorldSync() {
       touchStartY.current = null;
     };
 
-    // Keyboard navigation
     const handleKeyDown = (e: KeyboardEvent) => {
       if (["ArrowDown", "PageDown", " "].includes(e.key)) {
         e.preventDefault();
-        updateZ(-25);
+        updateZ(-21);
       } else if (["ArrowUp", "PageUp"].includes(e.key)) {
         e.preventDefault();
-        updateZ(25);
+        updateZ(21);
       }
     };
 

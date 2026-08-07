@@ -3,12 +3,18 @@
 import React, { useState, useEffect, useRef } from "react";
 import servicesData from "@/content/services/services.json";
 import { Globe, Cpu, Smartphone, Layers, Cloud, Search, ArrowUpRight, CheckCircle2 } from "lucide-react";
+import { tickEngine } from "@/lib/tick-engine";
 
 export default function ServicesGalaxy() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
+  const activeIndexRef = useRef(0);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const renderState = useRef({ isOffscreen: false, isTabVisible: true });
+  const renderState = useRef({ isOffscreen: false });
+
+  useEffect(() => {
+    activeIndexRef.current = activeIndex;
+  }, [activeIndex]);
 
   const activeService = servicesData[activeIndex];
 
@@ -22,7 +28,6 @@ export default function ServicesGalaxy() {
   };
 
   useEffect(() => {
-    // Detect mobile viewports to toggle adaptive layouts
     const handleViewport = () => {
       setIsMobile(window.innerWidth < 768);
     };
@@ -32,7 +37,7 @@ export default function ServicesGalaxy() {
   }, []);
 
   useEffect(() => {
-    if (isMobile) return; // Skip rendering canvases on mobile
+    if (isMobile) return;
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -40,18 +45,9 @@ export default function ServicesGalaxy() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    let animId: number;
     let angle = 0;
-
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    // Visibility API listeners
-    const handleVisibility = () => {
-      renderState.current.isTabVisible = !document.hidden;
-    };
-    document.addEventListener("visibilitychange", handleVisibility);
-
-    // Culling Observer
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         renderState.current.isOffscreen = !entry.isIntersecting;
@@ -60,16 +56,12 @@ export default function ServicesGalaxy() {
     observer.observe(canvas);
 
     const render = () => {
-      if (renderState.current.isOffscreen || !renderState.current.isTabVisible) {
-        animId = requestAnimationFrame(render);
-        return;
-      }
+      if (renderState.current.isOffscreen) return;
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       const cx = canvas.width / 2;
       const cy = canvas.height / 2;
 
-      // Draw faint orbit tracks
       ctx.strokeStyle = "rgba(47, 128, 255, 0.05)";
       ctx.lineWidth = 1;
       for (let r = 80; r <= 200; r += 40) {
@@ -78,7 +70,6 @@ export default function ServicesGalaxy() {
         ctx.stroke();
       }
 
-      // Center Core
       const grad = ctx.createRadialGradient(cx, cy, 2, cx, cy, 25);
       grad.addColorStop(0, "#FFFFFF");
       grad.addColorStop(0.4, "#3EF2FF");
@@ -88,7 +79,6 @@ export default function ServicesGalaxy() {
       ctx.arc(cx, cy, 25, 0, Math.PI * 2);
       ctx.fill();
 
-      // Orbit step
       angle += prefersReducedMotion ? 0 : 0.003;
 
       servicesData.forEach((service, index) => {
@@ -97,7 +87,7 @@ export default function ServicesGalaxy() {
         const x = cx + Math.cos(offsetAngle) * orbitRadius;
         const y = cy + Math.sin(offsetAngle) * orbitRadius;
 
-        const isCurrent = index === activeIndex;
+        const isCurrent = index === activeIndexRef.current;
 
         ctx.strokeStyle = isCurrent ? "rgba(139, 92, 255, 0.3)" : "rgba(62, 242, 255, 0.06)";
         ctx.beginPath();
@@ -125,8 +115,6 @@ export default function ServicesGalaxy() {
           ctx.fillText(service.name.toUpperCase(), x, y - 20);
         }
       });
-
-      animId = requestAnimationFrame(render);
     };
 
     const handleResize = () => {
@@ -136,19 +124,17 @@ export default function ServicesGalaxy() {
 
     handleResize();
     window.addEventListener("resize", handleResize);
-    render();
+    const unsubscribe = tickEngine.subscribe("services-galaxy", render);
 
     return () => {
-      cancelAnimationFrame(animId);
+      unsubscribe();
       observer.disconnect();
-      document.removeEventListener("visibilitychange", handleVisibility);
       window.removeEventListener("resize", handleResize);
     };
-  }, [activeIndex, isMobile]);
+  }, [isMobile]);
 
   const SelectedIcon = iconMap[activeService.icon] || Globe;
 
-  // Render Mobile-first Adaptive Accordion cards
   if (isMobile) {
     return (
       <div className="space-y-4 w-full">
@@ -163,7 +149,6 @@ export default function ServicesGalaxy() {
                 isOpen ? "border-cyan-glow/30 bg-cyan-glow/5" : "bg-space-black/40"
               }`}
             >
-              {/* Trigger */}
               <button
                 onClick={() => setActiveIndex(idx)}
                 className="w-full flex items-center justify-between p-5 text-left interactive"
@@ -181,7 +166,6 @@ export default function ServicesGalaxy() {
                 </span>
               </button>
 
-              {/* Expander */}
               {isOpen && (
                 <div className="px-5 pb-5 pt-1 border-t border-white/5 space-y-4 animate-float" style={{ animationDuration: "10s" }}>
                   <p className="text-xs text-neutral-300 leading-relaxed">
@@ -228,7 +212,6 @@ export default function ServicesGalaxy() {
     );
   }
 
-  // Desktop layout with 3D Orbit Canvas
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center w-full min-h-[500px]">
       <div className="lg:col-span-5 h-[350px] lg:h-[450px] relative flex items-center justify-center glass-panel border-white/5 rounded-xl overflow-hidden order-2 lg:order-1 bg-space-black/50">

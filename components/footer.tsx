@@ -3,18 +3,16 @@
 import React from "react";
 import { TransitionLink } from "@/providers/transition-provider";
 import ZibrinLogo from "@/features/logo/logo";
-import { MapPin, Phone, Mail, Clock, ArrowUpRight } from "lucide-react";
+import { MapPin, Phone, Mail, Clock } from "lucide-react";
 
 export default function Footer() {
   return (
-    <footer className="w-full bg-space-black border-t border-white/10 py-12 md:py-16 mt-auto relative overflow-hidden">
-      {/* Glow highlight bottom backdrop */}
+    <footer className="w-full bg-space-black border-t border-white/10 py-12 md:py-16 mt-auto relative overflow-hidden transform-gpu-3d">
       <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full h-32 bg-gradient-to-t from-cyan-glow/5 to-transparent pointer-events-none" />
 
       <div className="container mx-auto px-4 md:px-8 relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start mb-12">
           
-          {/* Logo & India Office Info column */}
           <div className="md:col-span-5 flex flex-col items-start space-y-4">
             <div className="flex items-center gap-3">
               <ZibrinLogo size={36} animated={false} />
@@ -32,7 +30,6 @@ export default function Footer() {
               India's premier digital engineering laboratory. We construct high-frequency web platforms, enterprise AI agent models, and Generative Engine Optimization (GEO) systems.
             </p>
 
-            {/* Indian Contact Info Badges */}
             <div className="space-y-2 text-xs font-mono text-neutral-300">
               <div className="flex items-center gap-2">
                 <MapPin className="w-3.5 h-3.5 text-cyan-glow shrink-0" />
@@ -56,7 +53,6 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Quick links columns */}
           <div className="md:col-span-3">
             <h4 className="text-[10px] font-mono text-cyan-glow uppercase tracking-widest mb-4 flex items-center gap-1.5">
               <span>LAB DIRECTORIES</span>
@@ -86,7 +82,6 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Core Principles & Currency Badge */}
           <div className="md:col-span-4">
             <h4 className="text-[10px] font-mono text-cyan-glow uppercase tracking-widest mb-4">
               CORE PRINCIPLES
@@ -113,7 +108,6 @@ export default function Footer() {
 
         </div>
 
-        {/* Diagnostic bottom footer */}
         <div className="border-t border-white/10 pt-8 flex flex-wrap gap-4 justify-between items-center text-[10px] font-mono text-neutral-400">
           <div>
             &copy; {new Date().getFullYear()} ZIBRIN INFOTECH PRIVATE LIMITED. MUMBAI, INDIA. ALL RIGHTS RESERVED.
@@ -128,4 +122,3 @@ export default function Footer() {
     </footer>
   );
 }
-

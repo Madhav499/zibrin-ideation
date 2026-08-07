@@ -2,6 +2,8 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
+import { tickEngine } from "@/lib/tick-engine";
+import { safeDisposeObject } from "@/lib/three-dispose";
 
 export type ITModelType =
   | "aiNeural"
@@ -31,6 +33,8 @@ export default function NoomoSpatialPortal({
   const canvasRef = useRef<HTMLDivElement | null>(null);
   const [progress, setProgress] = useState(0);
   const [isActive, setIsActive] = useState(false);
+  const renderState = useRef({ isOffscreen: false });
+  const instanceIdRef = useRef(`noomo-${Math.random()}`);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -39,7 +43,6 @@ export default function NoomoSpatialPortal({
 
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-    // Three.js Scene Setup
     const scene = new THREE.Scene();
     const width = window.innerWidth;
     const height = window.innerHeight;
@@ -47,12 +50,11 @@ export default function NoomoSpatialPortal({
     const camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 1000);
     camera.position.z = 16;
 
-    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: "high-performance" });
     renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
     canvasContainer.appendChild(renderer.domElement);
 
-    // Lighting
     const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
     scene.add(ambientLight);
 
@@ -64,7 +66,6 @@ export default function NoomoSpatialPortal({
     pointLight2.position.set(-15, -15, 15);
     scene.add(pointLight2);
 
-    // Build IT 3D Models
     const portalGroup = new THREE.Group();
     scene.add(portalGroup);
 
@@ -92,7 +93,6 @@ export default function NoomoSpatialPortal({
         mainMesh = group;
         break;
       }
-
       case "cloudServer": {
         const group = new THREE.Group();
         for (let i = 0; i < 4; i++) {
@@ -114,7 +114,6 @@ export default function NoomoSpatialPortal({
         mainMesh = group;
         break;
       }
-
       case "codeMatrix": {
         const group = new THREE.Group();
         const cubeGeo = new THREE.BoxGeometry(4.2, 4.2, 4.2);
@@ -134,7 +133,6 @@ export default function NoomoSpatialPortal({
         mainMesh = group;
         break;
       }
-
       case "dataMonolith": {
         const group = new THREE.Group();
         const cylGeo = new THREE.CylinderGeometry(3.2, 3.2, 5.2, 32, 4, true);
@@ -155,7 +153,6 @@ export default function NoomoSpatialPortal({
         mainMesh = group;
         break;
       }
-
       case "cyberShield": {
         const group = new THREE.Group();
         const outerRing = new THREE.Mesh(
@@ -172,7 +169,6 @@ export default function NoomoSpatialPortal({
         mainMesh = group;
         break;
       }
-
       case "globalNetwork": {
         const group = new THREE.Group();
         const sphereGeo = new THREE.SphereGeometry(3.8, 24, 24);
@@ -192,7 +188,6 @@ export default function NoomoSpatialPortal({
         mainMesh = group;
         break;
       }
-
       case "techPrism":
       default: {
         const group = new THREE.Group();
@@ -217,9 +212,8 @@ export default function NoomoSpatialPortal({
 
     portalGroup.add(mainMesh);
 
-    // Orbiting Background Cyber Particles
     const particlesGeo = new THREE.BufferGeometry();
-    const particleCount = 120;
+    const particleCount = 70;
     const posArray = new Float32Array(particleCount * 3);
     for (let i = 0; i < particleCount * 3; i++) {
       posArray[i] = (Math.random() - 0.5) * 30;
@@ -234,7 +228,6 @@ export default function NoomoSpatialPortal({
     const particleField = new THREE.Points(particlesGeo, particleMat);
     scene.add(particleField);
 
-    // Mouse Parallax
     let mouseX = 0;
     let mouseY = 0;
     const handleMouseMove = (e: MouseEvent) => {
@@ -243,14 +236,12 @@ export default function NoomoSpatialPortal({
     };
     window.addEventListener("mousemove", handleMouseMove);
 
-    // Scroll Progress Listener
     let currentProgress = 0;
     const handleScroll = () => {
       if (!container) return;
       const rect = container.getBoundingClientRect();
       const windowHeight = window.innerHeight;
 
-      // Active state when inside or near screen
       const active = rect.top < windowHeight * 1.5 && rect.bottom > -windowHeight * 0.5;
       setIsActive(active);
 
@@ -265,7 +256,13 @@ export default function NoomoSpatialPortal({
     window.addEventListener("scroll", handleScroll, { passive: true });
     handleScroll();
 
-    // Resize
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        renderState.current.isOffscreen = !entry.isIntersecting;
+      });
+    });
+    observer.observe(container);
+
     const handleResize = () => {
       const w = window.innerWidth;
       const h = window.innerHeight;
@@ -275,23 +272,13 @@ export default function NoomoSpatialPortal({
     };
     window.addEventListener("resize", handleResize);
 
-    // Render Animation Loop
-    let animId: number;
-    const startTime = performance.now();
+    const render = (deltaTime: number, elapsedTime: number) => {
+      if (renderState.current.isOffscreen) return;
 
-    const animate = () => {
-      const time = (performance.now() - startTime) * 0.001;
+      portalGroup.rotation.y = elapsedTime * 0.5 + mouseX * 0.4;
+      portalGroup.rotation.x = elapsedTime * 0.3 - mouseY * 0.4;
+      particleField.rotation.y = elapsedTime * 0.1;
 
-      portalGroup.rotation.y = time * 0.5 + mouseX * 0.4;
-      portalGroup.rotation.x = time * 0.3 - mouseY * 0.4;
-      particleField.rotation.y = time * 0.1;
-
-      // -------------------------------------------------------------
-      // EXACT NOOMOAGENCY.COM 3D SPATIAL DYNAMICS:
-      // 1. Progress 0.0 -> 0.35: 3D Element appears out of nowhere from deep Z space (Z = -50 -> 0, scale 0 -> 1.2)
-      // 2. Progress 0.35 -> 0.65: 3D Element expands across full screen
-      // 3. Progress 0.65 -> 1.0: 3D Element vanishes while Next Page emerges from deep 3D background Z space at the exact same time
-      // -------------------------------------------------------------
       let portalScale = 0.001;
       let portalZ = -50;
       let portalOpacity = 0;
@@ -318,45 +305,40 @@ export default function NoomoSpatialPortal({
       particleMat.opacity = portalOpacity * 0.8;
 
       renderer.render(scene, camera);
-      animId = requestAnimationFrame(animate);
     };
 
-    animate();
+    const unsubscribe = tickEngine.subscribe(instanceIdRef.current, render);
 
     return () => {
-      cancelAnimationFrame(animId);
+      unsubscribe();
+      observer.disconnect();
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", handleResize);
+
+      safeDisposeObject(scene);
+      renderer.dispose();
       if (renderer.domElement && canvasContainer.contains(renderer.domElement)) {
         canvasContainer.removeChild(renderer.domElement);
       }
-      renderer.dispose();
     };
   }, [type]);
 
-  // Page B spatial emergence ratio (progress 0.50 -> 1.0)
   const emergenceRatio = Math.max(0, Math.min(1, (progress - 0.50) / 0.50));
   const scalePageB = 0.88 + emergenceRatio * 0.12;
 
   return (
     <div className="w-full">
-      {/* Page A rendered in natural full height document flow */}
       {pageA && <div className="w-full relative z-10">{pageA}</div>}
 
-      {/* 3D Spatial Portal Trigger Transition Zone */}
       <div ref={containerRef} className="relative w-full h-[150vh] pointer-events-none">
-        
-        {/* Sticky Fullscreen 3D Viewport Overlay */}
         <div
           className={`sticky top-0 h-screen w-full overflow-hidden transition-opacity duration-300 ${
             isActive ? "opacity-100" : "opacity-0"
           }`}
         >
-          {/* Three.js 3D Canvas */}
           <div ref={canvasRef} className="absolute inset-0 z-20 pointer-events-none" />
 
-          {/* Floating HUD Cyber Label */}
           <div
             className="absolute bottom-12 left-1/2 -translate-x-1/2 z-40 pointer-events-none transition-opacity duration-300"
             style={{ opacity: progress > 0.15 && progress < 0.85 ? 1 : 0 }}
@@ -372,10 +354,8 @@ export default function NoomoSpatialPortal({
             </div>
           </div>
         </div>
-
       </div>
 
-      {/* Page B rendered in natural full height document flow (Emerges from deep 3D background as 3D element vanishes) */}
       {pageB && (
         <div
           className="w-full relative z-10 transition-all duration-300 ease-out"

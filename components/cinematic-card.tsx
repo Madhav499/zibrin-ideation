@@ -23,37 +23,41 @@ export default function CinematicCard({ children, className = "", delay = 0 }: C
 
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-    gsap.fromTo(
-      el,
-      {
-        opacity: 0,
-        z: -100,
-        rotateX: 8,
-        rotateY: -6,
-        scale: 0.9,
-      },
-      {
-        opacity: 1,
-        z: 0,
-        rotateX: 0,
-        rotateY: 0,
-        scale: 1,
-        duration: 1.1,
-        delay,
-        ease: "power3.out",
-        scrollTrigger: {
-          trigger: el,
-          start: "top 88%",
-          toggleActions: "play none none none",
+    const ctx = gsap.context(() => {
+      gsap.fromTo(
+        el,
+        {
+          opacity: 0,
+          z: -100,
+          rotateX: 8,
+          rotateY: -6,
+          scale: 0.9,
         },
-      }
-    );
+        {
+          opacity: 1,
+          z: 0,
+          rotateX: 0,
+          rotateY: 0,
+          scale: 1,
+          duration: 1.1,
+          delay,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: el,
+            start: "top 88%",
+            toggleActions: "play none none none",
+          },
+        }
+      );
+    }, el);
+
+    return () => ctx.revert();
   }, [delay]);
 
   return (
     <div
       ref={cardRef}
-      className={`preserve-3d will-change-transform ${className}`}
+      className={`preserve-3d transform-gpu-3d ${className}`}
       style={{ transformStyle: "preserve-3d" }}
     >
       {children}

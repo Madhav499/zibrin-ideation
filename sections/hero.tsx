@@ -18,11 +18,9 @@ export default function HeroSection() {
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (prefersReducedMotion) return;
 
-    // Heading construction timeline
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({ delay: 0.6 });
 
-      // 1. "ENGINEERING" letter-by-letter path lock (simulated via key-frame typing and rotation reveals)
       const engineeringLetters = document.querySelectorAll(".eng-char");
       tl.fromTo(
         engineeringLetters,
@@ -38,7 +36,6 @@ export default function HeroSection() {
         }
       );
 
-      // 2. "THE FUTURE" combination dial align/lock reveal
       const futureLetters = document.querySelectorAll(".future-char");
       tl.fromTo(
         futureLetters,
@@ -55,7 +52,6 @@ export default function HeroSection() {
         "-=0.4"
       );
 
-      // 3. "TOGETHER" zoom-bloom reveal (from depth)
       tl.fromTo(
         ".together-word",
         { opacity: 0, scale: 0.4, filter: "blur(20px)", textShadow: "0 0 40px #3EF2FF" },
@@ -63,7 +59,6 @@ export default function HeroSection() {
         "-=0.2"
       );
 
-      // 4. CTAs & badges slide/fade
       tl.fromTo(
         [badgeRef.current, btn1Ref.current, btn2Ref.current],
         { opacity: 0, y: 15 },
@@ -79,18 +74,15 @@ export default function HeroSection() {
   const futureString = "THE FUTURE";
 
   return (
-    <section ref={containerRef} className="relative w-full min-h-screen flex flex-col justify-center overflow-hidden pt-20">
-      {/* Dynamic particles core canvas background */}
+    <section ref={containerRef} className="relative w-full min-h-screen flex flex-col justify-center overflow-hidden pt-20 transform-gpu-3d">
       <HeroCanvas />
 
-      {/* Volumetric background gradients */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(62,242,255,0.04),transparent_65%)] pointer-events-none" />
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-neon-violet/10 rounded-full blur-[140px] pointer-events-none animate-pulse-glow" style={{ animationDuration: "8s" }} />
 
       <div className="container mx-auto px-4 md:px-8 relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center pointer-events-none">
         <div className="lg:col-span-8 flex flex-col text-left pointer-events-auto">
           
-          {/* Status Diagnostic Badge */}
           <div 
             ref={badgeRef}
             className="inline-flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full w-fit mb-6"
@@ -101,9 +93,7 @@ export default function HeroSection() {
             </span>
           </div>
 
-          {/* Constructed Title block */}
           <h1 ref={headingRef} className="text-4xl md:text-6xl lg:text-7xl font-syne font-extrabold tracking-tight text-white mb-6 uppercase leading-tight select-none">
-            {/* 1. Engineering letters */}
             <span className="block mb-2">
               {titleString.split("").map((char, idx) => (
                 <span key={idx} className="eng-char inline-block origin-bottom">
@@ -112,7 +102,6 @@ export default function HeroSection() {
               ))}
             </span>
             
-            {/* 2. The Future locks */}
             <span className="block mb-2 text-transparent bg-clip-text bg-gradient-to-r from-cyan-glow via-electric-blue to-neon-violet glow-text-cyan">
               {futureString.split("").map((char, idx) => (
                 <span key={idx} className="future-char inline-block origin-center" style={{ perspective: "600px" }}>
@@ -121,13 +110,12 @@ export default function HeroSection() {
               ))}
             </span>
 
-            {/* 3. Together bloom */}
             <span className="together-word block">
               TOGETHER.
             </span>
           </h1>
 
-          <p className="text-sm md:text-base text-neutral-400 max-w-xl mb-8 leading-relaxed">
+          <p className="text-sm md:text-base text-neutral-200 max-w-xl mb-8 leading-relaxed font-sans font-medium">
             Building intelligent digital ecosystems that transform ambitious concepts into scalable, enterprise-grade reality. We construct software for the infinite future.
           </p>
 
@@ -135,7 +123,7 @@ export default function HeroSection() {
             <a
               ref={btn1Ref}
               href="/builder"
-              className="px-6 sm:px-8 py-3.5 bg-gradient-to-r from-electric-blue to-neon-violet text-white text-xs font-mono tracking-widest rounded border border-cyan-glow/20 flex items-center justify-center gap-2 hover:scale-105 transition-all duration-300 shadow-neon-blue cursor-pointer"
+              className="px-6 sm:px-8 py-3.5 bg-gradient-to-r from-electric-blue to-neon-violet text-white text-xs font-mono tracking-widest rounded border border-cyan-glow/30 flex items-center justify-center gap-2 hover:scale-105 transition-all duration-300 shadow-neon-blue cursor-pointer"
             >
               <span>START YOUR JOURNEY</span>
               <ArrowRight className="w-4 h-4" />
@@ -152,9 +140,8 @@ export default function HeroSection() {
         </div>
       </div>
       
-      {/* Scroll indicator */}
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 pointer-events-none">
-        <span className="text-[9px] font-mono text-neutral-500 tracking-widest uppercase">
+        <span className="text-[9px] font-mono text-neutral-400 tracking-widest uppercase">
           SCROLL TO EXPLORE
         </span>
         <div className="w-[1px] h-12 bg-gradient-to-b from-cyan-glow to-transparent" />

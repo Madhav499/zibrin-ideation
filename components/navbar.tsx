@@ -9,7 +9,7 @@ export default function Navbar() {
   const { openFocus } = useFocusMode();
 
   return (
-    <header className="fixed top-0 left-0 w-full z-40 bg-transparent py-4 md:py-6 pointer-events-none">
+    <header className="fixed top-0 left-0 w-full z-40 bg-transparent py-4 md:py-6 pointer-events-none transform-gpu-3d">
       <div className="container mx-auto px-6 md:px-8 flex items-center justify-between">
         {/* Persistent Element 1: Zibrin Logo (Top-Left) */}
         <div className="pointer-events-auto flex items-center gap-3 group cursor-pointer text-left">

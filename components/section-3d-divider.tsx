@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef } from "react";
+import { tickEngine } from "@/lib/tick-engine";
 
 interface Section3DDividerProps {
   label?: string;
@@ -9,6 +10,8 @@ interface Section3DDividerProps {
 
 export default function Section3DDivider({ label = "SYS // LEVEL TRANSITION", sublabel = "0x3F_DEPTH_NODE" }: Section3DDividerProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const renderState = useRef({ isOffscreen: false });
+  const instanceIdRef = useRef(`divider-${Math.random()}`);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -16,7 +19,6 @@ export default function Section3DDivider({ label = "SYS // LEVEL TRANSITION", su
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    let animId: number;
     let angle = 0;
 
     const resize = () => {
@@ -26,8 +28,15 @@ export default function Section3DDivider({ label = "SYS // LEVEL TRANSITION", su
     resize();
     window.addEventListener("resize", resize);
 
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        renderState.current.isOffscreen = !entry.isIntersecting;
+      });
+    });
+    observer.observe(canvas);
+
     const nodes: Array<{ x: number; y: number; z: number; speed: number }> = [];
-    for (let i = 0; i < 40; i++) {
+    for (let i = 0; i < 30; i++) {
       nodes.push({
         x: (Math.random() - 0.5) * canvas.width * 1.5,
         y: (Math.random() - 0.5) * 60,
@@ -37,12 +46,13 @@ export default function Section3DDivider({ label = "SYS // LEVEL TRANSITION", su
     }
 
     const render = () => {
+      if (renderState.current.isOffscreen) return;
+
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       const cx = canvas.width / 2;
       const cy = canvas.height / 2;
       angle += 0.015;
 
-      // Draw center 3D wireframe ring projection
       const numSegments = 24;
       const radius = 38;
       ctx.lineWidth = 1;
@@ -53,7 +63,6 @@ export default function Section3DDivider({ label = "SYS // LEVEL TRANSITION", su
         const x3d = Math.cos(theta) * radius;
         const z3d = Math.sin(theta) * radius;
 
-        // Perspective projection
         const scale = 300 / (300 + z3d);
         const px = cx + x3d * scale;
         const py = cy + (Math.sin(angle * 0.7) * 10) * scale;
@@ -62,11 +71,8 @@ export default function Section3DDivider({ label = "SYS // LEVEL TRANSITION", su
         else ctx.lineTo(px, py);
       }
       ctx.strokeStyle = "rgba(62, 242, 255, 0.4)";
-      ctx.shadowBlur = 10;
-      ctx.shadowColor = "#3EF2FF";
       ctx.stroke();
 
-      // Inner counter-rotating ring
       ctx.beginPath();
       for (let i = 0; i <= numSegments; i++) {
         const theta = (i / numSegments) * Math.PI * 2 - angle * 1.3;
@@ -81,11 +87,8 @@ export default function Section3DDivider({ label = "SYS // LEVEL TRANSITION", su
         else ctx.lineTo(px, py);
       }
       ctx.strokeStyle = "rgba(139, 92, 255, 0.6)";
-      ctx.shadowColor = "#8B5CFF";
       ctx.stroke();
-      ctx.shadowBlur = 0;
 
-      // Draw connecting laser beam line extending left and right
       const grad = ctx.createLinearGradient(0, cy, canvas.width, cy);
       grad.addColorStop(0, "transparent");
       grad.addColorStop(0.3, "rgba(62, 242, 255, 0.1)");
@@ -99,7 +102,6 @@ export default function Section3DDivider({ label = "SYS // LEVEL TRANSITION", su
       ctx.lineTo(canvas.width, cy);
       ctx.stroke();
 
-      // Floating spatial nodes
       nodes.forEach((n) => {
         n.z -= n.speed;
         if (n.z < 10) n.z = 450;
@@ -114,14 +116,13 @@ export default function Section3DDivider({ label = "SYS // LEVEL TRANSITION", su
         ctx.arc(px, py, Math.max(1, 2.5 * scale), 0, Math.PI * 2);
         ctx.fill();
       });
-
-      animId = requestAnimationFrame(render);
     };
 
-    render();
+    const unsubscribe = tickEngine.subscribe(instanceIdRef.current, render);
 
     return () => {
-      cancelAnimationFrame(animId);
+      unsubscribe();
+      observer.disconnect();
       window.removeEventListener("resize", resize);
     };
   }, []);
@@ -129,7 +130,7 @@ export default function Section3DDivider({ label = "SYS // LEVEL TRANSITION", su
   return (
     <div className="relative w-full h-24 my-6 overflow-hidden flex items-center justify-center pointer-events-none select-none">
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
-      <div className="relative z-10 px-4 py-1 bg-space-black/80 border border-cyan-glow/20 rounded-full backdrop-blur-md flex items-center gap-3">
+      <div className="relative z-10 px-4 py-1 bg-space-black/80 border border-cyan-glow/20 rounded-full flex items-center gap-3">
         <span className="w-1.5 h-1.5 rounded-full bg-cyan-glow animate-ping" />
         <span className="text-[9px] font-mono text-neutral-300 tracking-widest uppercase">
           {label}

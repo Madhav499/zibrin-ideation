@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { ArrowRight, Globe, Layers, MessageSquare, Search } from "lucide-react";
+import { Globe } from "lucide-react";
+import { tickEngine } from "@/lib/tick-engine";
 
 interface Node {
   id: string;
@@ -18,9 +19,10 @@ export default function SeoCanvas() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [activeNode, setActiveNode] = useState<Node | null>(null);
   const [isMobile, setIsMobile] = useState(false);
+  const activeNodeRef = useRef<Node | null>(null);
   const nodesRef = useRef<Node[]>([]);
   const hoverPos = useRef({ x: 0, y: 0 });
-  const renderState = useRef({ isOffscreen: false, isTabVisible: true });
+  const renderState = useRef({ isOffscreen: false });
 
   useEffect(() => {
     const handleViewport = () => {
@@ -40,7 +42,6 @@ export default function SeoCanvas() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    let animId: number;
     let pulses: Array<{
       from: string;
       to: string;
@@ -132,7 +133,6 @@ export default function SeoCanvas() {
         }
       ];
 
-      // Reset pulses (set speed to 0 if reduced motion)
       const baseSpeed = prefersReducedMotion ? 0 : 0.005;
       pulses = [
         { from: "web", to: "google", progress: 0, speed: baseSpeed * 1.2, size: 3, color: "#3EF2FF" },
@@ -162,19 +162,16 @@ export default function SeoCanvas() {
           found = n;
         }
       });
-      setActiveNode(found);
+
+      if (activeNodeRef.current !== found) {
+        activeNodeRef.current = found;
+        setActiveNode(found);
+      }
       hoverPos.current = { x: mouseX, y: mouseY };
     };
 
     canvas.addEventListener("mousemove", handleMouseMove);
 
-    // Visibility observer
-    const handleVisibility = () => {
-      renderState.current.isTabVisible = !document.hidden;
-    };
-    document.addEventListener("visibilitychange", handleVisibility);
-
-    // Culling Observer
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         renderState.current.isOffscreen = !entry.isIntersecting;
@@ -183,15 +180,11 @@ export default function SeoCanvas() {
     observer.observe(canvas);
 
     const render = () => {
-      if (renderState.current.isOffscreen || !renderState.current.isTabVisible) {
-        animId = requestAnimationFrame(render);
-        return;
-      }
+      if (renderState.current.isOffscreen) return;
 
       ctx.fillStyle = "#05070F";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Grid background
       ctx.strokeStyle = "rgba(47, 128, 255, 0.03)";
       ctx.lineWidth = 1;
       for (let x = 0; x < canvas.width; x += 40) {
@@ -201,7 +194,6 @@ export default function SeoCanvas() {
         ctx.stroke();
       }
 
-      // Connection paths
       pulses.forEach((p) => {
         const fromNode = nodesRef.current.find((n) => n.id === p.from);
         const toNode = nodesRef.current.find((n) => n.id === p.to);
@@ -222,21 +214,14 @@ export default function SeoCanvas() {
         const px = fromNode.x + (toNode.x - fromNode.x) * p.progress;
         const py = fromNode.y + (toNode.y - fromNode.y) * p.progress;
 
-        ctx.shadowBlur = 8;
-        ctx.shadowColor = p.color;
         ctx.fillStyle = p.color;
         ctx.beginPath();
         ctx.arc(px, py, p.size, 0, Math.PI * 2);
         ctx.fill();
-        ctx.shadowBlur = 0;
       });
 
-      // Nodes
       nodesRef.current.forEach((n) => {
-        const isHovered = activeNode?.id === n.id;
-
-        ctx.shadowBlur = isHovered ? 20 : 6;
-        ctx.shadowColor = n.glowColor;
+        const isHovered = activeNodeRef.current?.id === n.id;
 
         ctx.strokeStyle = n.color;
         ctx.lineWidth = 2;
@@ -249,29 +234,23 @@ export default function SeoCanvas() {
         ctx.arc(n.x, n.y, n.r - 4, 0, Math.PI * 2);
         ctx.fill();
 
-        ctx.shadowBlur = 0;
-
         ctx.fillStyle = isHovered ? "#3EF2FF" : "#8B9BB4";
         ctx.font = "bold 9px var(--font-orbitron)";
         ctx.textAlign = "center";
         ctx.fillText(n.name, n.x, n.y + n.r + 14);
       });
-
-      animId = requestAnimationFrame(render);
     };
 
-    render();
+    const unsubscribe = tickEngine.subscribe("seo-canvas", render);
 
     return () => {
-      cancelAnimationFrame(animId);
+      unsubscribe();
       observer.disconnect();
-      document.removeEventListener("visibilitychange", handleVisibility);
       window.removeEventListener("resize", initNodes);
       canvas.removeEventListener("mousemove", handleMouseMove);
     };
-  }, [activeNode, isMobile]);
+  }, [isMobile]);
 
-  // Mobile fallback - responsive SVG diagram with CSS animation
   if (isMobile) {
     return (
       <div className="flex flex-col gap-6 w-full p-5 glass-panel border-white/5 rounded-xl bg-space-black/50">
@@ -282,9 +261,7 @@ export default function SeoCanvas() {
           </h4>
         </div>
         
-        {/* Simple vertical visual timeline representing flow */}
         <div className="relative pl-6 space-y-6">
-          {/* Connector bar */}
           <div className="absolute left-[9px] top-2 bottom-2 w-[2px] bg-gradient-to-b from-cyan-glow via-neon-violet to-white" />
           
           <div className="relative flex gap-3">
@@ -313,7 +290,6 @@ export default function SeoCanvas() {
     );
   }
 
-  // Desktop canvas layout
   return (
     <div className="w-full relative h-[400px] border border-white/5 bg-space-black/80 rounded-xl overflow-hidden glass-panel">
       <canvas ref={canvasRef} className="block w-full h-full cursor-crosshair" />

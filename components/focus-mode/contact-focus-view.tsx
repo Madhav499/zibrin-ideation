@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Sparkles, Phone, Mail, MapPin, User, Globe, Send, MessageSquare, CheckCircle2, Clock } from "lucide-react";
+import { Phone, Mail, MapPin, User, Globe, Send, MessageSquare, CheckCircle2, Clock } from "lucide-react";
 import CinematicDigitalEarth from "@/components/webgl/cinematic-digital-earth";
 
 export default function ContactFocusView() {
@@ -25,7 +25,7 @@ export default function ContactFocusView() {
   return (
     <div className="space-y-4">
       {/* Header Banner */}
-      <div className="p-4 rounded-xl bg-gradient-to-r from-space-black via-space-black to-space-black border border-cyan-glow/30 backdrop-blur-xl relative overflow-hidden">
+      <div className="p-4 rounded-xl bg-[#0A0E1C] border border-cyan-glow/30 relative overflow-hidden">
         <h2 className="text-xl md:text-3xl font-bold font-syne text-white mb-1">
           Let's Build Something <span className="bg-gradient-to-r from-cyan-glow via-electric-blue to-neon-violet bg-clip-text text-transparent">Extraordinary Together</span>
         </h2>
@@ -37,7 +37,7 @@ export default function ContactFocusView() {
       {/* Two-Column Unclipped Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Column: Full 8-Field Enquiry Form */}
-        <div className="lg:col-span-7 p-5 rounded-xl bg-space-black/80 border border-cyan-glow/30 backdrop-blur-xl">
+        <div className="lg:col-span-7 p-5 rounded-xl bg-[#0A0E1C] border border-cyan-glow/30">
           <h3 className="text-base font-bold font-syne text-white mb-3">Send Us an Enquiry</h3>
 
           {submitted ? (
@@ -64,7 +64,7 @@ export default function ContactFocusView() {
                     required
                     value={formData.fullName}
                     onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-xs font-mono focus:border-cyan-glow focus:outline-none transition-colors"
+                    className="w-full px-3 py-2 rounded-lg bg-space-black border border-white/10 text-white text-xs font-mono focus:border-cyan-glow focus:outline-none transition-colors duration-150"
                     placeholder="John Doe"
                   />
                 </div>
@@ -75,7 +75,7 @@ export default function ContactFocusView() {
                     required
                     value={formData.companyName}
                     onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-xs font-mono focus:border-cyan-glow focus:outline-none transition-colors"
+                    className="w-full px-3 py-2 rounded-lg bg-space-black border border-white/10 text-white text-xs font-mono focus:border-cyan-glow focus:outline-none transition-colors duration-150"
                     placeholder="Acme Corp"
                   />
                 </div>
@@ -89,7 +89,7 @@ export default function ContactFocusView() {
                     required
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-xs font-mono focus:border-cyan-glow focus:outline-none transition-colors"
+                    className="w-full px-3 py-2 rounded-lg bg-space-black border border-white/10 text-white text-xs font-mono focus:border-cyan-glow focus:outline-none transition-colors duration-150"
                     placeholder="+91 7573892447"
                   />
                 </div>
@@ -100,7 +100,7 @@ export default function ContactFocusView() {
                     required
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-xs font-mono focus:border-cyan-glow focus:outline-none transition-colors"
+                    className="w-full px-3 py-2 rounded-lg bg-space-black border border-white/10 text-white text-xs font-mono focus:border-cyan-glow focus:outline-none transition-colors duration-150"
                     placeholder="john@example.com"
                   />
                 </div>
@@ -114,7 +114,7 @@ export default function ContactFocusView() {
                     required
                     value={formData.cityCountry}
                     onChange={(e) => setFormData({ ...formData, cityCountry: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-xs font-mono focus:border-cyan-glow focus:outline-none transition-colors"
+                    className="w-full px-3 py-2 rounded-lg bg-space-black border border-white/10 text-white text-xs font-mono focus:border-cyan-glow focus:outline-none transition-colors duration-150"
                     placeholder="Rajkot, India"
                   />
                 </div>
@@ -124,7 +124,7 @@ export default function ContactFocusView() {
                     type="text"
                     value={formData.serviceOfInterest}
                     onChange={(e) => setFormData({ ...formData, serviceOfInterest: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-xs font-mono focus:border-cyan-glow focus:outline-none transition-colors"
+                    className="w-full px-3 py-2 rounded-lg bg-space-black border border-white/10 text-white text-xs font-mono focus:border-cyan-glow focus:outline-none transition-colors duration-150"
                     placeholder="Website Dev / AI Chatbot"
                   />
                 </div>
@@ -136,7 +136,7 @@ export default function ContactFocusView() {
                   type="text"
                   value={formData.timePeriod}
                   onChange={(e) => setFormData({ ...formData, timePeriod: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-xs font-mono focus:border-cyan-glow focus:outline-none transition-colors"
+                  className="w-full px-3 py-2 rounded-lg bg-space-black border border-white/10 text-white text-xs font-mono focus:border-cyan-glow focus:outline-none transition-colors duration-150"
                   placeholder="Immediate / 1 Month"
                 />
               </div>
@@ -148,14 +148,14 @@ export default function ContactFocusView() {
                   rows={3}
                   value={formData.message}
                   onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-xs font-mono focus:border-cyan-glow focus:outline-none transition-colors resize-none"
+                  className="w-full px-3 py-2 rounded-lg bg-space-black border border-white/10 text-white text-xs font-mono focus:border-cyan-glow focus:outline-none transition-colors duration-150 resize-none"
                   placeholder="Tell us about your project vision..."
                 />
               </div>
 
               <button
                 type="submit"
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-glow to-electric-blue text-space-black font-semibold text-xs font-mono tracking-widest uppercase shadow-[0_0_25px_rgba(62,242,255,0.3)] hover:shadow-[0_0_35px_rgba(62,242,255,0.5)] transition-all cursor-pointer flex items-center justify-center gap-2"
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-glow to-electric-blue text-space-black font-semibold text-xs font-mono tracking-widest uppercase shadow-[0_0_25px_rgba(62,242,255,0.3)] hover:shadow-[0_0_35px_rgba(62,242,255,0.5)] transition-all duration-150 cursor-pointer flex items-center justify-center gap-2 active:scale-95"
               >
                 <span>Send Enquiry</span>
                 <Send className="w-3.5 h-3.5" />
@@ -166,7 +166,7 @@ export default function ContactFocusView() {
 
         {/* Right Column: Contact Details, WhatsApp, Map, Hours */}
         <div className="lg:col-span-5 space-y-4">
-          <div className="p-5 rounded-xl bg-space-black/80 border border-white/10 backdrop-blur-xl">
+          <div className="p-5 rounded-xl bg-[#0A0E1C] border border-white/10">
             <h3 className="text-base font-bold font-syne text-white mb-3">Contact Information</h3>
 
             <div className="space-y-3">
@@ -176,7 +176,7 @@ export default function ContactFocusView() {
                 </div>
                 <div>
                   <div className="text-[10px] font-mono text-slate-400">Phone / WhatsApp</div>
-                  <a href="tel:+917573892447" className="text-xs font-semibold font-mono text-white hover:text-cyan-glow transition-colors">
+                  <a href="tel:+917573892447" className="text-xs font-semibold font-mono text-white hover:text-cyan-glow transition-colors duration-150">
                     +91 7573892447
                   </a>
                 </div>
@@ -188,7 +188,7 @@ export default function ContactFocusView() {
                 </div>
                 <div>
                   <div className="text-[10px] font-mono text-slate-400">Email</div>
-                  <a href="mailto:zibrininfotech@gmail.com" className="text-xs font-semibold font-mono text-white hover:text-cyan-glow transition-colors">
+                  <a href="mailto:zibrininfotech@gmail.com" className="text-xs font-semibold font-mono text-white hover:text-cyan-glow transition-colors duration-150">
                     zibrininfotech@gmail.com
                   </a>
                 </div>
@@ -220,7 +220,7 @@ export default function ContactFocusView() {
                 </div>
                 <div>
                   <div className="text-[10px] font-mono text-slate-400">Website</div>
-                  <a href="https://www.zibrininfotech.com" target="_blank" rel="noopener noreferrer" className="text-xs font-semibold font-mono text-white hover:text-cyan-glow transition-colors">
+                  <a href="https://www.zibrininfotech.com" target="_blank" rel="noopener noreferrer" className="text-xs font-semibold font-mono text-white hover:text-cyan-glow transition-colors duration-150">
                     www.zibrininfotech.com
                   </a>
                 </div>
@@ -229,7 +229,7 @@ export default function ContactFocusView() {
           </div>
 
           {/* WhatsApp Direct Chat Box */}
-          <div className="p-4 rounded-xl bg-gradient-to-r from-emerald-950/70 to-space-black border border-emerald-500/30 backdrop-blur-xl">
+          <div className="p-4 rounded-xl bg-emerald-950/70 border border-emerald-500/30">
             <h4 className="text-xs font-bold font-syne text-white mb-1">Prefer to Chat on WhatsApp?</h4>
             <p className="text-[11px] text-slate-300 mb-2 font-light">
               Start an instant conversation directly with our engineering experts.
@@ -238,7 +238,7 @@ export default function ContactFocusView() {
               href="https://wa.me/917573892447"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-space-black font-semibold text-xs font-mono transition-all shadow-[0_0_15px_rgba(16,185,129,0.3)] hover:scale-105"
+              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-space-black font-semibold text-xs font-mono transition-all duration-150 shadow-[0_0_15px_rgba(16,185,129,0.3)] hover:scale-105"
             >
               <MessageSquare className="w-3.5 h-3.5" />
               <span>Chat on WhatsApp (+91 7573892447)</span>
@@ -246,12 +246,11 @@ export default function ContactFocusView() {
           </div>
 
           {/* Business Hours & Map */}
-          <div className="p-3.5 rounded-xl bg-space-black/80 border border-white/10 backdrop-blur-xl text-center space-y-2">
+          <div className="p-3.5 rounded-xl bg-[#0A0E1C] border border-white/10 text-center space-y-2">
             <div className="flex items-center justify-center gap-1.5 text-[11px] font-mono text-cyan-glow">
               <Clock className="w-3.5 h-3.5" />
               <span>Business Hours: Mon - Sat (9:00 AM - 7:00 PM IST)</span>
             </div>
-            {/* Real-Time 3D Digital Earth Headquarters Visualizer */}
             <CinematicDigitalEarth />
           </div>
         </div>

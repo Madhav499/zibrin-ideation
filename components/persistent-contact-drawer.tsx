@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { MessageSquare, X, Phone, Mail, MapPin, Send, CheckCircle2, Sparkles, MessageCircle } from "lucide-react";
+import React, { useState, useCallback } from "react";
+import { MessageSquare, X, Phone, Mail, Send, CheckCircle2, Sparkles, MessageCircle } from "lucide-react";
 
 export default function PersistentContactDrawer() {
   const [open, setOpen] = useState(false);
@@ -11,6 +11,14 @@ export default function PersistentContactDrawer() {
     phoneOrEmail: "",
     message: "",
   });
+
+  const toggleOpen = useCallback(() => {
+    setOpen((prev) => !prev);
+  }, []);
+
+  const handleClose = useCallback(() => {
+    setOpen(false);
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,8 +30,8 @@ export default function PersistentContactDrawer() {
       {/* Floating Trigger Button (Bottom-Right) */}
       <div className="fixed bottom-6 right-6 z-40">
         <button
-          onClick={() => setOpen(!open)}
-          className="group relative flex items-center gap-2.5 px-4 py-3 rounded-full bg-gradient-to-r from-cyan-glow via-electric-blue to-neon-violet text-space-black font-semibold text-xs shadow-[0_0_30px_rgba(62,242,255,0.5)] hover:shadow-[0_0_45px_rgba(62,242,255,0.8)] transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
+          onClick={toggleOpen}
+          className="group relative flex items-center gap-2.5 px-4 py-3 rounded-full bg-gradient-to-r from-cyan-glow via-electric-blue to-neon-violet text-space-black font-semibold text-xs shadow-[0_0_30px_rgba(62,242,255,0.5)] hover:shadow-[0_0_45px_rgba(62,242,255,0.8)] transition-all duration-150 ease-out hover:scale-105 active:scale-95 cursor-pointer transform-gpu-3d"
           aria-label="Toggle Contact Us Panel"
         >
           {open ? (
@@ -42,7 +50,7 @@ export default function PersistentContactDrawer() {
 
       {/* Expandable Slide-Over Drawer */}
       {open && (
-        <div className="fixed inset-y-0 right-0 z-50 w-full max-w-md bg-space-black/95 border-l border-cyan-glow/30 backdrop-blur-2xl p-6 shadow-[0_0_50px_rgba(0,0,0,0.9)] flex flex-col justify-between overflow-y-auto animate-in slide-in-from-right duration-300">
+        <div className="fixed inset-y-0 right-0 z-50 w-full max-w-md bg-[#080C1B] border-l border-cyan-glow/30 p-6 shadow-[0_0_50px_rgba(0,0,0,0.9)] flex flex-col justify-between overflow-y-auto animate-in slide-in-from-right duration-300 transform-gpu-3d">
           <div>
             {/* Header */}
             <div className="flex items-center justify-between pb-4 border-b border-white/10 mb-6">
@@ -51,8 +59,8 @@ export default function PersistentContactDrawer() {
                 <h3 className="text-lg font-bold font-syne text-white">Instant Contact Console</h3>
               </div>
               <button
-                onClick={() => setOpen(false)}
-                className="p-1.5 rounded-lg bg-white/5 text-slate-300 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
+                onClick={handleClose}
+                className="p-1.5 rounded-lg bg-white/5 text-slate-300 hover:text-white hover:bg-white/10 transition-all duration-150 cursor-pointer active:scale-95"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -64,7 +72,7 @@ export default function PersistentContactDrawer() {
                 href="https://wa.me/917573892447"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/25 flex items-center justify-between transition-all"
+                className="w-full p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/25 flex items-center justify-between transition-all duration-150 active:scale-95"
               >
                 <div className="flex items-center gap-3">
                   <MessageCircle className="w-5 h-5 text-emerald-400" />
@@ -78,7 +86,7 @@ export default function PersistentContactDrawer() {
 
               <a
                 href="tel:+917573892447"
-                className="w-full p-3 rounded-xl bg-cyan-glow/10 border border-cyan-glow/30 text-cyan-glow hover:bg-cyan-glow/20 flex items-center justify-between transition-all"
+                className="w-full p-3 rounded-xl bg-cyan-glow/10 border border-cyan-glow/30 text-cyan-glow hover:bg-cyan-glow/20 flex items-center justify-between transition-all duration-150 active:scale-95"
               >
                 <div className="flex items-center gap-3">
                   <Phone className="w-5 h-5 text-cyan-glow" />
@@ -110,7 +118,7 @@ export default function PersistentContactDrawer() {
                       placeholder="Your Name"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full px-3 py-2 rounded-lg bg-space-black border border-white/10 text-white text-xs focus:border-cyan-glow focus:outline-none"
+                      className="w-full px-3 py-2 rounded-lg bg-space-black border border-white/10 text-white text-xs focus:border-cyan-glow focus:outline-none transition-colors duration-150"
                     />
                   </div>
                   <div>
@@ -120,7 +128,7 @@ export default function PersistentContactDrawer() {
                       placeholder="Phone or Email"
                       value={formData.phoneOrEmail}
                       onChange={(e) => setFormData({ ...formData, phoneOrEmail: e.target.value })}
-                      className="w-full px-3 py-2 rounded-lg bg-space-black border border-white/10 text-white text-xs focus:border-cyan-glow focus:outline-none"
+                      className="w-full px-3 py-2 rounded-lg bg-space-black border border-white/10 text-white text-xs focus:border-cyan-glow focus:outline-none transition-colors duration-150"
                     />
                   </div>
                   <div>
@@ -130,12 +138,12 @@ export default function PersistentContactDrawer() {
                       placeholder="Your Brief / Requirement"
                       value={formData.message}
                       onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                      className="w-full px-3 py-2 rounded-lg bg-space-black border border-white/10 text-white text-xs focus:border-cyan-glow focus:outline-none resize-none"
+                      className="w-full px-3 py-2 rounded-lg bg-space-black border border-white/10 text-white text-xs focus:border-cyan-glow focus:outline-none resize-none transition-colors duration-150"
                     />
                   </div>
                   <button
                     type="submit"
-                    className="w-full py-2.5 rounded-lg bg-gradient-to-r from-cyan-glow to-electric-blue text-space-black font-semibold text-xs shadow-[0_0_15px_rgba(62,242,255,0.3)] hover:scale-[1.02] transition-all cursor-pointer flex items-center justify-center gap-2"
+                    className="w-full py-2.5 rounded-lg bg-gradient-to-r from-cyan-glow to-electric-blue text-space-black font-semibold text-xs shadow-[0_0_15px_rgba(62,242,255,0.3)] hover:scale-[1.02] active:scale-95 transition-all duration-150 cursor-pointer flex items-center justify-center gap-2"
                   >
                     <span>Send Message</span>
                     <Send className="w-3.5 h-3.5" />

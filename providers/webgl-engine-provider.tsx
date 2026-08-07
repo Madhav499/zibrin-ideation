@@ -6,7 +6,7 @@ import React, {
   useState,
   useEffect,
   useCallback,
-  useMemo,
+  memo,
 } from "react";
 import { Canvas } from "@react-three/fiber";
 import { Suspense } from "react";
@@ -24,15 +24,15 @@ import {
   HOME_SCROLL_Z_MIN,
 } from "@/lib/world-config";
 import type { WorldKey } from "@/lib/world-config";
-
-export type QualityTier = "high" | "medium" | "low";
+import { qualityManager, QualityProfile } from "@/lib/quality-manager";
+import { useFocusMode } from "@/providers/focus-mode-provider";
 
 interface WebglEngineContextType {
   activeWorld: WorldKey;
   targetZ: number;
   scrollTargetZ: number;
   cameraZ: number;
-  qualityTier: QualityTier;
+  qualityProfile: QualityProfile;
   isHomeScroll: boolean;
   setWorld: (key: WorldKey) => void;
   setScrollTargetZ: (z: number) => void;
@@ -44,7 +44,7 @@ const WebglEngineContext = createContext<WebglEngineContextType>({
   targetZ: HOME_SCROLL_Z_MIN,
   scrollTargetZ: HOME_SCROLL_Z_MIN,
   cameraZ: HOME_SCROLL_Z_MIN + CAMERA_OFFSET,
-  qualityTier: "high",
+  qualityProfile: qualityManager.getProfile(),
   isHomeScroll: true,
   setWorld: () => {},
   setScrollTargetZ: () => {},
@@ -56,28 +56,55 @@ export const useWebglEngine = () => useContext(WebglEngineContext);
 export type { WorldKey };
 export { WORLD_Z, CAMERA_OFFSET };
 
+// Inner Canvas Container component that subscribes to Focus Mode to pause WebGL rendering during popups
+const WebglCanvasContainer = memo(function WebglCanvasContainer({ qualityProfile }: { qualityProfile: QualityProfile }) {
+  const { activeFocusKey } = useFocusMode();
+  const isFocusOpen = activeFocusKey !== null;
+
+  return (
+    <div className="fixed inset-0 z-0 overflow-hidden bg-space-black" aria-hidden="true">
+      <Canvas
+        camera={{ position: [0, 0, CAMERA_OFFSET], fov: 42, near: 0.1, far: 1200 }}
+        dpr={qualityProfile.dpr}
+        frameloop={isFocusOpen ? "never" : "always"}
+        gl={{
+          antialias: qualityProfile.antialias,
+          alpha: false,
+          powerPreference: "high-performance",
+          stencil: false,
+          depth: true,
+        }}
+        style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
+      >
+        <color attach="background" args={["#05070F"]} />
+
+        <Suspense fallback={null}>
+          <WorldEnvironment />
+          <LightingRig />
+          <CinematicCameraController />
+          <VolumetricParticles />
+          <MasterWorldScene />
+          {qualityProfile.enablePostProcessing && <PostProcessingPipeline />}
+        </Suspense>
+      </Canvas>
+    </div>
+  );
+});
+
 export default function WebglEngineProvider({ children }: { children: React.ReactNode }) {
   const [activeWorld, setActiveWorld] = useState<WorldKey>("hero");
   const [targetZ, setTargetZ] = useState<number>(HOME_SCROLL_Z_MIN);
   const [scrollTargetZ, setScrollTargetZState] = useState<number>(HOME_SCROLL_Z_MIN);
   const [cameraZ, setCameraZ] = useState<number>(HOME_SCROLL_Z_MIN + CAMERA_OFFSET);
   const [isHomeScroll, setIsHomeScroll] = useState(true);
-  const [qualityTier, setQualityTier] = useState<QualityTier>("high");
+  const [qualityProfile, setQualityProfile] = useState<QualityProfile>(() => qualityManager.getProfile());
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const isMobile = window.innerWidth < 768;
-    const isLowEnd = window.innerWidth < 480;
-    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    if (prefersReducedMotion || isLowEnd) {
-      setQualityTier("low");
-    } else if (isMobile) {
-      setQualityTier("medium");
-    } else {
-      setQualityTier("high");
-    }
+    qualityManager.init();
+    const unsubscribe = qualityManager.subscribe((profile) => {
+      setQualityProfile(profile);
+    });
+    return () => unsubscribe();
   }, []);
 
   const setWorld = useCallback((worldKey: WorldKey) => {
@@ -93,12 +120,6 @@ export default function WebglEngineProvider({ children }: { children: React.Reac
     setIsHomeScroll(true);
   }, []);
 
-  const dpr = useMemo<[number, number]>(() => {
-    if (qualityTier === "high") return [1, 2];
-    if (qualityTier === "medium") return [1, 1.5];
-    return [1, 1.25];
-  }, [qualityTier]);
-
   return (
     <WebglEngineContext.Provider
       value={{
@@ -106,7 +127,7 @@ export default function WebglEngineProvider({ children }: { children: React.Reac
         targetZ,
         scrollTargetZ,
         cameraZ,
-        qualityTier,
+        qualityProfile,
         isHomeScroll,
         setWorld,
         setScrollTargetZ,
@@ -116,30 +137,7 @@ export default function WebglEngineProvider({ children }: { children: React.Reac
       <RouteWorldSync />
       <ScrollWorldSync />
 
-      <div className="fixed inset-0 z-0 overflow-hidden bg-space-black" aria-hidden="true">
-        <Canvas
-          camera={{ position: [0, 0, CAMERA_OFFSET], fov: 42, near: 0.1, far: 1200 }}
-          dpr={dpr}
-          gl={{
-            antialias: qualityTier !== "low",
-            alpha: false,
-            powerPreference: "high-performance",
-            stencil: false,
-          }}
-          style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
-        >
-          <color attach="background" args={["#05070F"]} />
-
-          <Suspense fallback={null}>
-            <WorldEnvironment />
-            <LightingRig />
-            <CinematicCameraController />
-            <VolumetricParticles />
-            <MasterWorldScene />
-            <PostProcessingPipeline />
-          </Suspense>
-        </Canvas>
-      </div>
+      <WebglCanvasContainer qualityProfile={qualityProfile} />
 
       <div className="relative z-10">{children}</div>
     </WebglEngineContext.Provider>

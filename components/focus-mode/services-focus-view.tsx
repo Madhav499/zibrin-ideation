@@ -1,15 +1,59 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useCallback, memo } from "react";
 import { Search, Code, Database, ArrowRight, CheckCircle2 } from "lucide-react";
 import { useFocusMode } from "@/providers/focus-mode-provider";
+
+// Memoized Service Card Component with opaque background (NO backdrop-filter blur overdraw)
+const ServiceCard = memo(function ServiceCard({ srv }: { srv: { title: string; category: string; desc: string } }) {
+  return (
+    <div className="p-4 rounded-xl bg-[#0A0E1C] border border-white/10 hover:border-cyan-glow/40 transition-transform duration-150 ease-out flex flex-col justify-between group transform-gpu-3d hover:-translate-y-0.5">
+      <div>
+        <div className="text-[10px] font-mono text-cyan-glow uppercase tracking-wider mb-1.5 font-semibold">
+          {srv.category}
+        </div>
+        <h3 className="text-sm font-bold font-syne text-white mb-1.5 group-hover:text-cyan-glow transition-colors duration-150">
+          {srv.title}
+        </h3>
+        <p className="text-xs text-slate-300 leading-relaxed font-light mb-3">
+          {srv.desc}
+        </p>
+      </div>
+      <div className="flex items-center justify-between pt-2 border-t border-white/10 text-[10px] font-mono text-slate-400">
+        <span>ZIBRIN // CAPABILITY</span>
+        <CheckCircle2 className="w-3.5 h-3.5 text-cyan-glow" />
+      </div>
+    </div>
+  );
+});
+
+// Memoized Tech Card Component
+const TechCard = memo(function TechCard({ t }: { t: { name: string; cat: string } }) {
+  return (
+    <div className="p-4 rounded-xl bg-[#0A0E1C] border border-electric-blue/20 hover:border-electric-blue/50 transition-transform duration-150 text-center flex flex-col items-center justify-center gap-1.5 transform-gpu-3d hover:-translate-y-0.5">
+      <Code className="w-4 h-4 text-electric-blue mb-1" />
+      <span className="text-xs font-bold font-mono text-white">{t.name}</span>
+      <span className="text-[10px] font-mono text-cyan-glow/80">{t.cat}</span>
+    </div>
+  );
+});
+
+// Memoized Cloud Card Component
+const CloudCard = memo(function CloudCard({ c }: { c: string }) {
+  return (
+    <div className="p-4 rounded-xl bg-[#0A0E1C] border border-neon-violet/20 hover:border-neon-violet/50 transition-transform duration-150 flex items-center gap-3 transform-gpu-3d hover:-translate-y-0.5">
+      <Database className="w-4 h-4 text-neon-violet shrink-0" />
+      <span className="text-xs font-semibold text-white">{c}</span>
+    </div>
+  );
+});
 
 export default function ServicesFocusView() {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState<"services" | "tech" | "cloud">("services");
   const { openFocus } = useFocusMode();
 
-  const servicesList = [
+  const servicesList = useMemo(() => [
     { title: "Website Development", category: "Web Engineering", desc: "Custom responsive websites built with Next.js, React, and WebGL." },
     { title: "E-Commerce Development", category: "Web Engineering", desc: "High-conversion digital storefronts with 3D product visualizers and instant checkout." },
     { title: "Mobile App Development", category: "Mobile Systems", desc: "Native & cross-platform mobile apps for iOS and Android." },
@@ -39,9 +83,9 @@ export default function ServicesFocusView() {
     { title: "Play Store Deployment", category: "Cloud & DevOps", desc: "Google Play Store submission, compliance, and release management." },
     { title: "App Store Deployment", category: "Cloud & DevOps", desc: "Apple App Store review guidelines compliance and deployment." },
     { title: "Cloud Deployment", category: "Cloud & DevOps", desc: "AWS, Vercel, GCP, and Azure serverless infrastructure setup." },
-  ];
+  ], []);
 
-  const technologies = [
+  const technologies = useMemo(() => [
     { name: "Python", cat: "Backend & AI" },
     { name: "JavaScript", cat: "Frontend" },
     { name: "HTML5", cat: "Markup" },
@@ -55,9 +99,9 @@ export default function ServicesFocusView() {
     { name: "OpenAI API", cat: "AI" },
     { name: "Git", cat: "DevOps" },
     { name: "GitHub", cat: "DevOps" },
-  ];
+  ], []);
 
-  const databasesAndCloud = [
+  const databasesAndCloud = useMemo(() => [
     "MongoDB",
     "MySQL",
     "Firebase",
@@ -69,7 +113,11 @@ export default function ServicesFocusView() {
     "Cross-Platform Applications",
     "SaaS Products",
     "Business Software Solutions",
-  ];
+  ], []);
+
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+  }, []);
 
   const filteredServices = useMemo(() => {
     if (!searchTerm) return servicesList;
@@ -77,12 +125,12 @@ export default function ServicesFocusView() {
     return servicesList.filter(
       (s) => s.title.toLowerCase().includes(term) || s.category.toLowerCase().includes(term) || s.desc.toLowerCase().includes(term)
     );
-  }, [searchTerm]);
+  }, [searchTerm, servicesList]);
 
   return (
     <div className="space-y-4">
       {/* Header Banner */}
-      <div className="p-4 rounded-xl bg-gradient-to-r from-space-black via-space-black to-space-black border border-cyan-glow/30 backdrop-blur-xl relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="p-4 rounded-xl bg-[#0A0E1C] border border-cyan-glow/30 relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl md:text-2xl font-bold font-syne text-white mb-1">
             Solutions Without Limits. <span className="bg-gradient-to-r from-cyan-glow to-electric-blue bg-clip-text text-transparent">Concepts to Reality.</span>
@@ -94,22 +142,22 @@ export default function ServicesFocusView() {
 
         {/* Search Bar */}
         <div className="relative w-full md:w-72">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-cyan-glow" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-cyan-glow pointer-events-none" />
           <input
             type="text"
             placeholder="Search 29+ services..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 rounded-lg bg-space-black/90 border border-white/15 text-white text-xs font-mono focus:border-cyan-glow focus:outline-none transition-colors"
+            onChange={handleSearchChange}
+            className="w-full pl-9 pr-3 py-2 rounded-lg bg-space-black border border-white/15 text-white text-xs font-mono focus:border-cyan-glow focus:outline-none transition-colors duration-150"
           />
         </div>
       </div>
 
       {/* Tabs Control Bar */}
-      <div className="flex items-center gap-2 p-1 rounded-xl bg-space-black/80 border border-white/10 w-fit">
+      <div className="flex items-center gap-2 p-1 rounded-xl bg-[#0A0E1C] border border-white/10 w-fit">
         <button
           onClick={() => setActiveTab("services")}
-          className={`px-4 py-1.5 rounded-lg text-xs font-semibold font-mono transition-all cursor-pointer ${
+          className={`px-4 py-1.5 rounded-lg text-xs font-semibold font-mono transition-all duration-150 cursor-pointer ${
             activeTab === "services"
               ? "bg-cyan-glow text-space-black shadow-[0_0_15px_rgba(62,242,255,0.4)]"
               : "text-slate-300 hover:text-white"
@@ -119,7 +167,7 @@ export default function ServicesFocusView() {
         </button>
         <button
           onClick={() => setActiveTab("tech")}
-          className={`px-4 py-1.5 rounded-lg text-xs font-semibold font-mono transition-all cursor-pointer ${
+          className={`px-4 py-1.5 rounded-lg text-xs font-semibold font-mono transition-all duration-150 cursor-pointer ${
             activeTab === "tech"
               ? "bg-electric-blue text-white shadow-[0_0_15px_rgba(47,128,255,0.4)]"
               : "text-slate-300 hover:text-white"
@@ -129,7 +177,7 @@ export default function ServicesFocusView() {
         </button>
         <button
           onClick={() => setActiveTab("cloud")}
-          className={`px-4 py-1.5 rounded-lg text-xs font-semibold font-mono transition-all cursor-pointer ${
+          className={`px-4 py-1.5 rounded-lg text-xs font-semibold font-mono transition-all duration-150 cursor-pointer ${
             activeTab === "cloud"
               ? "bg-neon-violet text-white shadow-[0_0_15px_rgba(139,92,255,0.4)]"
               : "text-slate-300 hover:text-white"
@@ -144,26 +192,7 @@ export default function ServicesFocusView() {
         {activeTab === "services" && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
             {filteredServices.map((srv, idx) => (
-              <div
-                key={idx}
-                className="p-4 rounded-xl bg-space-black/70 border border-white/10 backdrop-blur-xl hover:border-cyan-glow/40 transition-all duration-300 flex flex-col justify-between group hover:-translate-y-1"
-              >
-                <div>
-                  <div className="text-[10px] font-mono text-cyan-glow uppercase tracking-wider mb-1.5 font-semibold">
-                    {srv.category}
-                  </div>
-                  <h3 className="text-sm font-bold font-syne text-white mb-1.5 group-hover:text-cyan-glow transition-colors">
-                    {srv.title}
-                  </h3>
-                  <p className="text-xs text-slate-300 leading-relaxed font-light mb-3">
-                    {srv.desc}
-                  </p>
-                </div>
-                <div className="flex items-center justify-between pt-2 border-t border-white/10 text-[10px] font-mono text-slate-400">
-                  <span>ZIBRIN // CAPABILITY</span>
-                  <CheckCircle2 className="w-3.5 h-3.5 text-cyan-glow" />
-                </div>
-              </div>
+              <ServiceCard key={idx} srv={srv} />
             ))}
           </div>
         )}
@@ -171,14 +200,7 @@ export default function ServicesFocusView() {
         {activeTab === "tech" && (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3.5">
             {technologies.map((t, idx) => (
-              <div
-                key={idx}
-                className="p-4 rounded-xl bg-space-black/70 border border-electric-blue/20 backdrop-blur-xl hover:border-electric-blue/50 transition-all text-center flex flex-col items-center justify-center gap-1.5"
-              >
-                <Code className="w-4 h-4 text-electric-blue mb-1" />
-                <span className="text-xs font-bold font-mono text-white">{t.name}</span>
-                <span className="text-[10px] font-mono text-cyan-glow/80">{t.cat}</span>
-              </div>
+              <TechCard key={idx} t={t} />
             ))}
           </div>
         )}
@@ -186,27 +208,21 @@ export default function ServicesFocusView() {
         {activeTab === "cloud" && (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5">
             {databasesAndCloud.map((c, idx) => (
-              <div
-                key={idx}
-                className="p-4 rounded-xl bg-space-black/70 border border-neon-violet/20 backdrop-blur-xl hover:border-neon-violet/50 transition-all flex items-center gap-3"
-              >
-                <Database className="w-4 h-4 text-neon-violet shrink-0" />
-                <span className="text-xs font-semibold text-white">{c}</span>
-              </div>
+              <CloudCard key={idx} c={c} />
             ))}
           </div>
         )}
       </div>
 
       {/* Bottom Action Footer */}
-      <div className="p-4 rounded-xl bg-gradient-to-r from-cyan-glow/10 via-electric-blue/10 to-neon-violet/10 border border-cyan-glow/30 backdrop-blur-md flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div className="p-4 rounded-xl bg-gradient-to-r from-cyan-glow/10 via-electric-blue/10 to-neon-violet/10 border border-cyan-glow/30 flex flex-col sm:flex-row items-center justify-between gap-3">
         <div>
           <h4 className="text-xs sm:text-sm font-bold font-syne text-white">Have a custom software requirement?</h4>
           <p className="text-[11px] text-slate-300 font-light">Connect directly with our engineering team for a technical roadmap.</p>
         </div>
         <button
           onClick={() => openFocus("contact")}
-          className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-glow to-electric-blue text-space-black font-semibold text-xs transition-all hover:scale-105 cursor-pointer shrink-0 flex items-center gap-2"
+          className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-glow to-electric-blue text-space-black font-semibold text-xs transition-all duration-150 hover:scale-[1.03] active:scale-95 cursor-pointer shrink-0 flex items-center gap-2 shadow-[0_0_15px_rgba(62,242,255,0.3)]"
         >
           <span>Open Contact Console</span>
           <ArrowRight className="w-3.5 h-3.5" />

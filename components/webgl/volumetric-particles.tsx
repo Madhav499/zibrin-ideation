@@ -7,13 +7,12 @@ import { useWebglEngine } from "@/providers/webgl-engine-provider";
 
 export default function VolumetricParticles() {
   const pointsRef = useRef<THREE.Points>(null);
-  const { qualityTier, cameraZ } = useWebglEngine();
+  const { qualityProfile, cameraZ } = useWebglEngine();
 
   const count = useMemo(() => {
-    if (qualityTier === "high") return 600;
-    if (qualityTier === "medium") return 300;
-    return 150;
-  }, [qualityTier]);
+    const baseCount = 600;
+    return Math.floor(baseCount * qualityProfile.particleMultiplier);
+  }, [qualityProfile.particleMultiplier]);
 
   const [positions, colors] = useMemo(() => {
     const pos = new Float32Array(count * 3);
@@ -51,7 +50,7 @@ export default function VolumetricParticles() {
         <bufferAttribute attach="attributes-color" args={[colors, 3]} />
       </bufferGeometry>
       <pointsMaterial
-        size={qualityTier === "high" ? 0.14 : 0.1}
+        size={qualityProfile.tier === "ultra" || qualityProfile.tier === "high" ? 0.14 : 0.1}
         vertexColors
         transparent
         opacity={0.55}

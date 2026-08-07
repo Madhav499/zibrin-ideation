@@ -2,6 +2,8 @@
 
 import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
+import { tickEngine } from "@/lib/tick-engine";
+import { safeDisposeObject } from "@/lib/three-dispose";
 
 interface Popup3DSceneProps {
   position?: "left" | "right" | "center" | "full";
@@ -15,15 +17,15 @@ export default function Popup3DScene({
   density = "medium",
 }: Popup3DSceneProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const renderState = useRef({ isOffscreen: false });
+  const instanceIdRef = useRef(`popup-3d-${Math.random()}`);
 
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
-    // Check reduced motion
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-    // Scene, Camera, Renderer setup
     const scene = new THREE.Scene();
     const width = container.clientWidth || window.innerWidth;
     const height = container.clientHeight || 400;
@@ -31,12 +33,11 @@ export default function Popup3DScene({
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
     camera.position.z = 20;
 
-    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: "high-performance" });
     renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
     container.appendChild(renderer.domElement);
 
-    // Ambient & Point Lighting
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
     scene.add(ambientLight);
 
@@ -48,12 +49,10 @@ export default function Popup3DScene({
     violetLight.position.set(-10, -10, 10);
     scene.add(violetLight);
 
-    // Create 3D Objects (Inspired by noomoagency 3D floating shapes)
     const group = new THREE.Group();
     scene.add(group);
 
-    // 1. Central Metallic Torus Knot
-    const torusGeo = new THREE.TorusKnotGeometry(2.2, 0.65, 100, 16);
+    const torusGeo = new THREE.TorusKnotGeometry(2.2, 0.65, 80, 16);
     const torusMat = new THREE.MeshStandardMaterial({
       color: 0x0c1838,
       emissive: 0x1a3a68,
@@ -65,7 +64,6 @@ export default function Popup3DScene({
     torusMesh.position.set(position === "left" ? -8 : position === "right" ? 8 : 0, 0, 0);
     group.add(torusMesh);
 
-    // Wireframe outer shell for 3D holographic depth
     const wireframeMat = new THREE.MeshBasicMaterial({
       color: 0x3ef2ff,
       wireframe: true,
@@ -76,8 +74,7 @@ export default function Popup3DScene({
     wireframeMesh.scale.set(1.08, 1.08, 1.08);
     torusMesh.add(wireframeMesh);
 
-    // 2. Floating 3D Geometric Spheres & Cubes
-    const count = density === "high" ? 14 : density === "medium" ? 8 : 5;
+    const count = density === "high" ? 10 : density === "medium" ? 6 : 4;
     const floatingObjects: Array<{
       mesh: THREE.Mesh;
       rotSpeedX: number;
@@ -120,7 +117,6 @@ export default function Popup3DScene({
       });
     }
 
-    // Mouse position tracking for 3D spatial tilt
     let mouseX = 0;
     let mouseY = 0;
     let targetMouseX = 0;
@@ -133,7 +129,13 @@ export default function Popup3DScene({
 
     window.addEventListener("mousemove", handleMouseMove);
 
-    // Resize listener
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        renderState.current.isOffscreen = !entry.isIntersecting;
+      });
+    });
+    observer.observe(container);
+
     const handleResize = () => {
       if (!container) return;
       const w = container.clientWidth || window.innerWidth;
@@ -144,26 +146,18 @@ export default function Popup3DScene({
     };
     window.addEventListener("resize", handleResize);
 
-    // Animation Loop
-    let animId: number;
-    const startTime = performance.now();
+    const render = (deltaTime: number, elapsedTime: number) => {
+      if (renderState.current.isOffscreen) return;
 
-    const animate = () => {
-      const elapsedTime = (performance.now() - startTime) * 0.001;
-
-      // Smooth mouse lerp
       mouseX += (targetMouseX - mouseX) * 0.05;
       mouseY += (targetMouseY - mouseY) * 0.05;
 
-      // Group rotation based on mouse movement (3D interactive pop effect)
       group.rotation.y = mouseX * 0.4 + elapsedTime * 0.05;
       group.rotation.x = -mouseY * 0.3;
 
-      // Rotate torus mesh
       torusMesh.rotation.x = elapsedTime * 0.2;
       torusMesh.rotation.y = elapsedTime * 0.3;
 
-      // Float floating objects up and down
       floatingObjects.forEach((obj, idx) => {
         obj.mesh.rotation.x += obj.rotSpeedX;
         obj.mesh.rotation.y += obj.rotSpeedY;
@@ -171,19 +165,21 @@ export default function Popup3DScene({
       });
 
       renderer.render(scene, camera);
-      animId = requestAnimationFrame(animate);
     };
 
-    animate();
+    const unsubscribe = tickEngine.subscribe(instanceIdRef.current, render);
 
     return () => {
-      cancelAnimationFrame(animId);
+      unsubscribe();
+      observer.disconnect();
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("resize", handleResize);
+
+      safeDisposeObject(scene);
+      renderer.dispose();
       if (renderer.domElement && container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement);
       }
-      renderer.dispose();
     };
   }, [density, position]);
 

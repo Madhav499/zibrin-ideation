@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import { tickEngine } from "@/lib/tick-engine";
+import { inputManager } from "@/lib/input-manager";
 
 interface TechNode {
   name: string;
@@ -16,10 +18,10 @@ export default function TechCanvas() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [hoveredNode, setHoveredNode] = useState<TechNode | null>(null);
   const [isMobile, setIsMobile] = useState(false);
-  const mouse = useRef({ x: 0, y: 0, targetX: 0, targetY: 0, active: false });
   const nodes = useRef<TechNode[]>([]);
+  const hoveredNodeRef = useRef<TechNode | null>(null);
   const tooltipPos = useRef({ x: 0, y: 0 });
-  const renderState = useRef({ isOffscreen: false, isTabVisible: true });
+  const renderState = useRef({ isOffscreen: false });
 
   const techList = [
     { name: "React", r: 85, color: "#61DAFB", desc: "Interactive dynamic SPA layout frontends." },
@@ -53,8 +55,6 @@ export default function TechCanvas() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    let animId: number;
-
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     const init = () => {
@@ -83,9 +83,6 @@ export default function TechCanvas() {
       const rect = canvas.getBoundingClientRect();
       const mx = e.clientX - rect.left;
       const my = e.clientY - rect.top;
-      mouse.current.targetX = mx;
-      mouse.current.targetY = my;
-      mouse.current.active = true;
 
       const cx = canvas.width / 2;
       const cy = canvas.height / 2;
@@ -100,25 +97,24 @@ export default function TechCanvas() {
           found = n;
         }
       });
-      setHoveredNode(found);
+
+      if (hoveredNodeRef.current !== found) {
+        hoveredNodeRef.current = found;
+        setHoveredNode(found);
+      }
       tooltipPos.current = { x: mx, y: my };
     };
 
     const handleMouseLeave = () => {
-      mouse.current.active = false;
-      setHoveredNode(null);
+      if (hoveredNodeRef.current !== null) {
+        hoveredNodeRef.current = null;
+        setHoveredNode(null);
+      }
     };
 
     canvas.addEventListener("mousemove", handleMouseMove);
     canvas.addEventListener("mouseleave", handleMouseLeave);
 
-    // Visibility API
-    const handleVisibility = () => {
-      renderState.current.isTabVisible = !document.hidden;
-    };
-    document.addEventListener("visibilitychange", handleVisibility);
-
-    // Culling Observer
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         renderState.current.isOffscreen = !entry.isIntersecting;
@@ -127,10 +123,7 @@ export default function TechCanvas() {
     observer.observe(canvas);
 
     const render = () => {
-      if (renderState.current.isOffscreen || !renderState.current.isTabVisible) {
-        animId = requestAnimationFrame(render);
-        return;
-      }
+      if (renderState.current.isOffscreen) return;
 
       ctx.fillStyle = "#05070F";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -138,7 +131,6 @@ export default function TechCanvas() {
       const cx = canvas.width / 2;
       const cy = canvas.height / 2;
 
-      // Draw faint tracks
       ctx.strokeStyle = "rgba(47, 128, 255, 0.03)";
       ctx.lineWidth = 1;
       [85, 120, 155, 190].forEach((r) => {
@@ -147,7 +139,6 @@ export default function TechCanvas() {
         ctx.stroke();
       });
 
-      // Draw Core
       const nucleusGradient = ctx.createRadialGradient(cx, cy, 2, cx, cy, 35);
       nucleusGradient.addColorStop(0, "#FFFFFF");
       nucleusGradient.addColorStop(0.3, "#3EF2FF");
@@ -158,16 +149,14 @@ export default function TechCanvas() {
       ctx.arc(cx, cy, 35, 0, Math.PI * 2);
       ctx.fill();
 
-      // Nodes
       nodes.current.forEach((n) => {
         n.angle += n.speed;
 
         const nx = cx + Math.cos(n.angle) * n.orbitRadius;
         const ny = cy + Math.sin(n.angle) * n.orbitRadius;
 
-        const isCurrent = hoveredNode?.name === n.name;
+        const isCurrent = hoveredNodeRef.current?.name === n.name;
 
-        // Neural links
         nodes.current.forEach((other) => {
           if (other.name === n.name) return;
           const ox = cx + Math.cos(other.angle) * other.orbitRadius;
@@ -187,7 +176,6 @@ export default function TechCanvas() {
           }
         });
 
-        // Connection line
         ctx.strokeStyle = isCurrent ? "rgba(139, 92, 255, 0.25)" : "rgba(255, 255, 255, 0.02)";
         ctx.lineWidth = 1;
         ctx.beginPath();
@@ -209,23 +197,19 @@ export default function TechCanvas() {
         ctx.textAlign = "center";
         ctx.fillText(n.name, nx, ny - 10);
       });
-
-      animId = requestAnimationFrame(render);
     };
 
-    render();
+    const unsubscribe = tickEngine.subscribe("tech-canvas", render);
 
     return () => {
-      cancelAnimationFrame(animId);
+      unsubscribe();
       observer.disconnect();
-      document.removeEventListener("visibilitychange", handleVisibility);
       window.removeEventListener("resize", init);
       canvas.removeEventListener("mousemove", handleMouseMove);
       canvas.removeEventListener("mouseleave", handleMouseLeave);
     };
-  }, [hoveredNode, isMobile]);
+  }, [isMobile]);
 
-  // Mobile Grid display fallback to optimize framerate metrics
   if (isMobile) {
     return (
       <div className="grid grid-cols-2 gap-4 w-full">
@@ -249,7 +233,6 @@ export default function TechCanvas() {
     );
   }
 
-  // Desktop canvas layout
   return (
     <div className="w-full relative h-[420px] bg-space-black/75 rounded-xl border border-white/5 overflow-hidden glass-panel">
       <canvas ref={canvasRef} className="block w-full h-full" />

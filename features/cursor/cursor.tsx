@@ -1,33 +1,70 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import { tickEngine } from "@/lib/tick-engine";
+import { inputManager } from "@/lib/input-manager";
+
+interface PhotonParticle {
+  x: number;
+  y: number;
+  alpha: number;
+  size: number;
+}
 
 export default function CustomCursor() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const mouse = useRef({ x: 0, y: 0, targetX: 0, targetY: 0 });
-  const lastMouse = useRef({ x: 0, y: 0 });
-  const cursorState = useRef({
-    radius: 8,
-    targetRadius: 8,
-    color: "#3EF2FF",
-    glow: 15,
-    type: "default" as "default" | "hover" | "text",
+
+  // QCS V2 State (Ref-based for 0 React re-renders & 120+ FPS execution)
+  const qcsState = useRef({
+    // Layer 1: Quantum Core (9.5px solid ceramic white, 1:1 locked)
+    coreX: 0,
+    coreY: 0,
+    coreRadius: 4.75, // 9.5px diameter
+
+    // Inertia Outer Rings Position (12ms physical lag)
+    outerX: 0,
+    outerY: 0,
+
+    // Dual Ring Dimensions & Targets
+    innerRingRadius: 14, // 28px diameter
+    targetInnerRingRadius: 14,
+    outerRingRadius: 20, // 40px diameter
+    targetOuterRingRadius: 20,
+
+    // Rotations & Speeds
+    energyAngle: 0,
+    orbitAngle: 0,
+    scanArcAngle: 0,
+    scanArcSpeedMultiplier: 1.0,
+
+    // Proximity Sensing System (40-60px radius)
+    proximityFactor: 0, // 0 to 1
+    closestInteractivePos: null as { x: number; y: number } | null,
+
+    // Adaptive Contrast & Brightness multiplier (1.0 to 1.25)
+    brightnessBoost: 1.0,
+
+    // Interaction states
+    type: "default" as "default" | "button" | "link" | "card" | "text",
+    magneticTarget: null as { x: number; y: number } | null,
+
+    // Click Sonar Pulse (100ms)
+    clickProgress: 0,
+
+    // Photon Particle Trail
+    photons: [] as PhotonParticle[],
+    lastSpawnPos: { x: 0, y: 0 },
+
+    // 4s Idle Easter Egg
+    idleTime: 0,
+    easterEggActive: false,
+    easterEggTimer: 0,
+    easterEggPulseRadius: 0,
   });
-  const particles = useRef<Array<{
-    x: number;
-    y: number;
-    vx: number;
-    vy: number;
-    alpha: number;
-    size: number;
-    color: string;
-  }>>([]);
-  const trail = useRef<Array<{ x: number; y: number }>>([]);
-  const isHovered = useRef(false);
+
   const [reducedMotion, setReducedMotion] = useState(false);
 
   useEffect(() => {
-    // Detect reduced motion settings
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     setReducedMotion(mediaQuery.matches);
     const handleQueryChange = (e: MediaQueryListEvent) => setReducedMotion(e.matches);
@@ -46,65 +83,50 @@ export default function CustomCursor() {
     resizeCanvas();
     window.addEventListener("resize", resizeCanvas);
 
-    const handleMouseMove = (e: MouseEvent) => {
-      mouse.current.targetX = e.clientX;
-      mouse.current.targetY = e.clientY;
-    };
-
+    // Click handler (100ms flash & sonar ripple)
     const handleMouseDown = () => {
-      cursorState.current.targetRadius = 4;
-      if (mediaQuery.matches) return; // Skip particles for reduced motion
-
-      // Spawn explosion particles on click
-      const colors = ["#2F80FF", "#8B5CFF", "#3EF2FF", "#FFFFFF"];
-      for (let i = 0; i < 15; i++) {
-        const angle = Math.random() * Math.PI * 2;
-        const speed = 1.5 + Math.random() * 3.5;
-        particles.current.push({
-          x: mouse.current.x,
-          y: mouse.current.y,
-          vx: Math.cos(angle) * speed,
-          vy: Math.sin(angle) * speed,
-          alpha: 1,
-          size: 1.5 + Math.random() * 2.5,
-          color: colors[Math.floor(Math.random() * colors.length)],
-        });
-      }
+      qcsState.current.clickProgress = 1.0;
     };
 
-    const handleMouseUp = () => {
-      if (cursorState.current.type === "hover") {
-        cursorState.current.targetRadius = 24;
-      } else if (cursorState.current.type === "text") {
-        cursorState.current.targetRadius = 12;
-      } else {
-        cursorState.current.targetRadius = 8;
-      }
-    };
+    window.addEventListener("mousedown", handleMouseDown, { passive: true });
 
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mousedown", handleMouseDown);
-    window.addEventListener("mouseup", handleMouseUp);
-
-    // Event delegation for context-aware states
+    // Interaction State Delegation, Magnetic Attraction & Proximity Radar
     const handleMouseOver = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       if (!target) return;
 
       const isText = target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.closest("[contenteditable]");
-      const isInteractive = target.closest("a") || target.closest("button") || target.closest("[data-cursor='magnetic']") || target.closest(".interactive");
+      const buttonEl = target.closest("button") || target.closest("[role='button']");
+      const linkEl = target.closest("a");
+      const cardEl = target.closest(".glass-panel") || target.closest(".interactive-card") || target.closest("[data-card]");
 
       if (isText) {
-        cursorState.current.type = "text";
-        cursorState.current.targetRadius = 12;
-        cursorState.current.color = "#3EF2FF";
-        cursorState.current.glow = 8;
-      } else if (isInteractive) {
-        isHovered.current = true;
-        cursorState.current.type = "hover";
-        cursorState.current.targetRadius = 24;
-        cursorState.current.color = "#8B5CFF"; // Purple for AI/Hover
-        cursorState.current.glow = 25;
+        qcsState.current.type = "text";
+        qcsState.current.magneticTarget = null;
+        qcsState.current.brightnessBoost = 1.2;
+      } else if (buttonEl) {
+        const rect = buttonEl.getBoundingClientRect();
+        qcsState.current.type = "button";
+        qcsState.current.targetInnerRingRadius = 17; // Expands to 34px
+        qcsState.current.targetOuterRingRadius = 24;
+        qcsState.current.brightnessBoost = 1.25; // +25% brightness boost on hover
+        qcsState.current.magneticTarget = {
+          x: rect.left + rect.width / 2,
+          y: rect.top + rect.height / 2,
+        };
+      } else if (linkEl) {
+        qcsState.current.type = "link";
+        qcsState.current.targetInnerRingRadius = 11; // 20% compression
+        qcsState.current.targetOuterRingRadius = 16;
+        qcsState.current.brightnessBoost = 1.2;
+        qcsState.current.magneticTarget = null;
+      } else if (cardEl) {
+        qcsState.current.type = "card";
+        qcsState.current.targetInnerRingRadius = 15;
+        qcsState.current.targetOuterRingRadius = 22;
+        qcsState.current.scanArcSpeedMultiplier = 2.5;
+        qcsState.current.brightnessBoost = 1.2;
+        qcsState.current.magneticTarget = null;
       }
     };
 
@@ -112,147 +134,371 @@ export default function CustomCursor() {
       const target = e.target as HTMLElement;
       if (!target) return;
 
-      const isText = target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.closest("[contenteditable]");
-      const isInteractive = target.closest("a") || target.closest("button") || target.closest("[data-cursor='magnetic']") || target.closest(".interactive");
+      const isInteractive =
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.closest("a") ||
+        target.closest("button") ||
+        target.closest("[role='button']") ||
+        target.closest(".glass-panel");
 
-      if (isText || isInteractive) {
-        isHovered.current = false;
-        cursorState.current.type = "default";
-        cursorState.current.targetRadius = 8;
-        cursorState.current.color = "#3EF2FF"; // Cyan for default
-        cursorState.current.glow = 15;
+      if (isInteractive) {
+        qcsState.current.type = "default";
+        qcsState.current.targetInnerRingRadius = 14;
+        qcsState.current.targetOuterRingRadius = 20;
+        qcsState.current.scanArcSpeedMultiplier = 1.0;
+        qcsState.current.brightnessBoost = 1.0;
+        qcsState.current.magneticTarget = null;
       }
     };
 
-    document.addEventListener("mouseover", handleMouseOver);
-    document.addEventListener("mouseout", handleMouseOut);
+    // Proximity Sensing MouseMove Radar (Scans within 60px of interactive targets)
+    const handleMouseMove = (e: MouseEvent) => {
+      if (qcsState.current.type !== "default") return;
 
-    let animationFrameId: number;
+      const x = e.clientX;
+      const y = e.clientY;
 
-    const render = () => {
+      // Fast element check near cursor pointer
+      const elements = document.elementsFromPoint(x, y);
+      let foundDist = 999;
+      let targetCenter: { x: number; y: number } | null = null;
+
+      for (let i = 0; i < elements.length; i++) {
+        const el = elements[i];
+        if (el.tagName === "BUTTON" || el.tagName === "A" || el.closest("button") || el.closest("a") || el.classList.contains("glass-panel")) {
+          const rect = el.getBoundingClientRect();
+          const cx = rect.left + rect.width / 2;
+          const cy = rect.top + rect.height / 2;
+          const dist = Math.hypot(cx - x, cy - y);
+          if (dist < foundDist) {
+            foundDist = dist;
+            targetCenter = { x: cx, y: cy };
+          }
+          break;
+        }
+      }
+
+      if (targetCenter && foundDist <= 60) {
+        const prox = Math.max(0, 1 - foundDist / 60);
+        qcsState.current.proximityFactor = prox;
+        qcsState.current.closestInteractivePos = targetCenter;
+      } else {
+        qcsState.current.proximityFactor = 0;
+        qcsState.current.closestInteractivePos = null;
+      }
+    };
+
+    document.addEventListener("mouseover", handleMouseOver, { passive: true });
+    document.addEventListener("mouseout", handleMouseOut, { passive: true });
+    document.addEventListener("mousemove", handleMouseMove, { passive: true });
+
+    // MASTER RENDER LOOP (100% Canvas, zero React state, 60-144 FPS)
+    const render = (deltaTime: number) => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Save previous position for velocity calculations
-      lastMouse.current.x = mouse.current.x;
-      lastMouse.current.y = mouse.current.y;
+      const state = qcsState.current;
 
-      // Lerp mouse coordinates for smooth latency inertia
-      mouse.current.x += (mouse.current.targetX - mouse.current.x) * 0.16;
-      mouse.current.y += (mouse.current.targetY - mouse.current.y) * 0.16;
+      // Update Mouse position (1:1 locked for core)
+      inputManager.updateMouseLerp(1.0);
+      const rawMouseX = inputManager.mouse.x;
+      const rawMouseY = inputManager.mouse.y;
 
-      // Velocity vectors
-      const dx = mouse.current.x - lastMouse.current.x;
-      const dy = mouse.current.y - lastMouse.current.y;
-      const velocity = Math.sqrt(dx * dx + dy * dy);
+      state.coreX = rawMouseX;
+      state.coreY = rawMouseY;
 
-      // Lerp target cursor radius
-      cursorState.current.radius += (cursorState.current.targetRadius - cursorState.current.radius) * 0.2;
+      // Subtle Magnetic Attraction (max 5px pull toward center of hovered button)
+      let targetOuterX = rawMouseX;
+      let targetOuterY = rawMouseY;
 
-      // Render custom neural trails (only if user prefers motion)
-      if (!mediaQuery.matches) {
-        trail.current.push({ x: mouse.current.x, y: mouse.current.y });
-        if (trail.current.length > 18) {
-          trail.current.shift();
-        }
-
-        if (trail.current.length > 1) {
-          ctx.beginPath();
-          ctx.moveTo(trail.current[0].x, trail.current[0].y);
-          for (let i = 1; i < trail.current.length; i++) {
-            const xc = (trail.current[i].x + trail.current[i - 1].x) / 2;
-            const yc = (trail.current[i].y + trail.current[i - 1].y) / 2;
-            ctx.quadraticCurveTo(trail.current[i - 1].x, trail.current[i - 1].y, xc, yc);
-          }
-          ctx.strokeStyle = "rgba(62, 242, 255, 0.1)";
-          ctx.lineWidth = 1.5;
-          ctx.stroke();
-        }
-
-        // Draw dynamic clicking burst particles
-        particles.current.forEach((p, idx) => {
-          p.x += p.vx;
-          p.y += p.vy;
-          p.alpha -= 0.025;
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-          ctx.fillStyle = p.color;
-          ctx.globalAlpha = Math.max(0, p.alpha);
-          ctx.fill();
-          ctx.globalAlpha = 1.0;
-
-          if (p.alpha <= 0) {
-            particles.current.splice(idx, 1);
-          }
-        });
-      }
-
-      // Draw custom context shape using canvas transformations
-      ctx.save();
-      ctx.translate(mouse.current.x, mouse.current.y);
-
-      if (cursorState.current.type === "text") {
-        // Text insert indicator (glowing vertical bar)
-        ctx.shadowBlur = cursorState.current.glow;
-        ctx.shadowColor = cursorState.current.color;
-        ctx.strokeStyle = cursorState.current.color;
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(0, -7);
-        ctx.lineTo(0, 7);
-        ctx.stroke();
-      } else {
-        // Scale / Stretch based on speed velocity vectors (bypass if reduced motion active)
-        if (!mediaQuery.matches && velocity > 0.5 && cursorState.current.type === "default") {
+      if (state.magneticTarget && !mediaQuery.matches) {
+        const dx = state.magneticTarget.x - rawMouseX;
+        const dy = state.magneticTarget.y - rawMouseY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 100) {
+          const pull = Math.min(5, dist * 0.05);
           const angle = Math.atan2(dy, dx);
-          ctx.rotate(angle);
-          const stretchFactor = Math.min(velocity * 0.045, 1.0);
-          ctx.scale(1 + stretchFactor, 1 / (1 + stretchFactor * 0.5));
-        }
-
-        // Outer glow loop
-        ctx.beginPath();
-        if (cursorState.current.type === "hover") {
-          // Hollow ring for buttons
-          ctx.arc(0, 0, cursorState.current.radius, 0, Math.PI * 2);
-          ctx.strokeStyle = cursorState.current.color;
-          ctx.lineWidth = 1.5;
-          ctx.shadowBlur = cursorState.current.glow;
-          ctx.shadowColor = cursorState.current.color;
-          ctx.stroke();
-        } else {
-          // Solid dot for default
-          ctx.arc(0, 0, cursorState.current.radius, 0, Math.PI * 2);
-          ctx.fillStyle = cursorState.current.color;
-          ctx.shadowBlur = cursorState.current.glow;
-          ctx.shadowColor = cursorState.current.color;
-          ctx.fill();
+          targetOuterX += Math.cos(angle) * pull;
+          targetOuterY += Math.sin(angle) * pull;
         }
       }
 
+      // 12ms Physical Inertia for Outer Rings
+      state.outerX += (targetOuterX - state.outerX) * 0.28;
+      state.outerY += (targetOuterY - state.outerY) * 0.28;
+
+      // Track Idle state for 4s Easter Egg
+      const moveDist = Math.hypot(rawMouseX - state.lastSpawnPos.x, rawMouseY - state.lastSpawnPos.y);
+      if (moveDist > 1.5) {
+        state.idleTime = 0;
+        state.lastSpawnPos = { x: rawMouseX, y: rawMouseY };
+
+        // Layer 5: Spawn Micro Photon Particle Trail (2-4 digital photons fading in 250ms)
+        if (state.type !== "card" && !mediaQuery.matches) {
+          state.photons.push({
+            x: rawMouseX + (Math.random() - 0.5) * 4,
+            y: rawMouseY + (Math.random() - 0.5) * 4,
+            alpha: 0.9,
+            size: Math.random() * 1.5 + 1.2,
+          });
+          if (state.photons.length > 8) state.photons.shift();
+        }
+      } else {
+        state.idleTime += deltaTime;
+      }
+
+      // 4s Idle Easter Egg Trigger
+      if (state.idleTime >= 4.0 && !state.easterEggActive) {
+        state.easterEggActive = true;
+        state.easterEggTimer = 1.0; // Show "SYSTEM READY" for 1 second
+        state.easterEggPulseRadius = 5;
+      }
+
+      if (state.easterEggActive) {
+        state.easterEggTimer -= deltaTime;
+        state.easterEggPulseRadius += deltaTime * 40;
+        if (state.easterEggTimer <= 0) {
+          state.easterEggActive = false;
+        }
+      }
+
+      // Proximity Glow Boost calculation (up to +20% brightness & stroke)
+      const currentBrightness = state.brightnessBoost + state.proximityFactor * 0.2;
+
+      // Smooth radius interpolation
+      state.innerRingRadius += (state.targetInnerRingRadius - state.innerRingRadius) * 0.22;
+      state.outerRingRadius += (state.targetOuterRingRadius - state.outerRingRadius) * 0.22;
+
+      // Continuous Rotations (Energy = 8s, Orbit = 4s)
+      if (state.type !== "button") {
+        state.energyAngle += deltaTime * (Math.PI * 2 / 8.0);
+        state.orbitAngle += deltaTime * (Math.PI * 2 / 4.0);
+      }
+      state.scanArcAngle += deltaTime * (Math.PI * 2 / 3.0) * state.scanArcSpeedMultiplier;
+
+      // Decay Click Sonar Pulse (100ms total = 10 * deltaTime)
+      if (state.clickProgress > 0) {
+        state.clickProgress = Math.max(0, state.clickProgress - deltaTime * 10.0);
+      }
+
+      // SUBTLE DARK BACKPLATE (10-15% soft radial dark shadow to separate from busy backgrounds)
+      ctx.save();
+      const backplateGrad = ctx.createRadialGradient(state.outerX, state.outerY, 0, state.outerX, state.outerY, 32);
+      backplateGrad.addColorStop(0, "rgba(0, 0, 0, 0.18)");
+      backplateGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+      ctx.fillStyle = backplateGrad;
+      ctx.beginPath();
+      ctx.arc(state.outerX, state.outerY, 32, 0, Math.PI * 2);
+      ctx.fill();
       ctx.restore();
 
-      // Reset central dot inside the magnetic ring for visual precision
-      if (cursorState.current.type === "hover") {
+      // Render Layer 5: Micro Photon Particle Trail
+      for (let i = state.photons.length - 1; i >= 0; i--) {
+        const p = state.photons[i];
+        p.alpha -= deltaTime / 0.25; // Fade out in 250ms
+        if (p.alpha <= 0) {
+          state.photons.splice(i, 1);
+          continue;
+        }
         ctx.beginPath();
-        ctx.arc(mouse.current.x, mouse.current.y, 2, 0, Math.PI * 2);
-        ctx.fillStyle = "#FFFFFF";
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 255, 255, ${p.alpha * 0.95})`;
+        ctx.shadowBlur = 4;
+        ctx.shadowColor = "#3EF2FF";
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+
+      // Render Card Glass Subtle Self-Illumination Light (10% intensity)
+      if (state.type === "card") {
+        const grad = ctx.createRadialGradient(state.outerX, state.outerY, 0, state.outerX, state.outerY, 65);
+        grad.addColorStop(0, "rgba(62, 242, 255, 0.15)");
+        grad.addColorStop(1, "rgba(62, 242, 255, 0)");
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(state.outerX, state.outerY, 65, 0, Math.PI * 2);
         ctx.fill();
       }
 
-      animationFrameId = requestAnimationFrame(render);
+      // RENDER OUTER LAYERS (At inertia position outerX, outerY)
+      ctx.save();
+      ctx.translate(state.outerX, state.outerY);
+
+      if (state.type === "text") {
+        // Futuristic Text Cursor: Two parallel cyan lines with animated energy pulse
+        ctx.strokeStyle = "#3EF2FF";
+        ctx.lineWidth = 2.0;
+        ctx.beginPath();
+        ctx.moveTo(-3.5, -9);
+        ctx.lineTo(-3.5, 9);
+        ctx.moveTo(3.5, -9);
+        ctx.lineTo(3.5, 9);
+        ctx.stroke();
+
+        const energyY = Math.sin(performance.now() * 0.012) * 7;
+        ctx.beginPath();
+        ctx.arc(0, energyY, 1.5, 0, Math.PI * 2);
+        ctx.fillStyle = "#FFFFFF";
+        ctx.shadowBlur = 6;
+        ctx.shadowColor = "#3EF2FF";
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      } else {
+        // LAYER 4: Dynamic Scan Arc (Violet Accent #8B5CFF, ~30% outer ring arc)
+        ctx.save();
+        ctx.rotate(state.scanArcAngle);
+
+        // 1px Dark Edge Outline for Arc
+        ctx.beginPath();
+        ctx.arc(0, 0, state.outerRingRadius + 4, 0, Math.PI * 0.6);
+        ctx.strokeStyle = "rgba(5, 7, 15, 0.65)";
+        ctx.lineWidth = 3.5;
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(0, 0, state.outerRingRadius + 4, 0, Math.PI * 0.6);
+        ctx.strokeStyle = state.type === "button" ? "#FFFFFF" : "#8B5CFF";
+        ctx.lineWidth = 2.0;
+        ctx.shadowBlur = 6;
+        ctx.shadowColor = "#8B5CFF";
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        ctx.restore();
+
+        // LAYER 3: Outer Secondary Ring (Soft Electric Blue #2F80FF, 1.5px stroke) & 3 White Satellites
+        // 1px Dark Edge Outline
+        ctx.beginPath();
+        ctx.arc(0, 0, state.outerRingRadius, 0, Math.PI * 2);
+        ctx.strokeStyle = "rgba(5, 7, 15, 0.65)";
+        ctx.lineWidth = 3.0;
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(0, 0, state.outerRingRadius, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(47, 128, 255, ${0.45 * currentBrightness})`;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // 3 High-Visibility Pure White Satellites (+20% size = 2.2px radius)
+        if (!state.easterEggActive) {
+          for (let s = 0; s < 3; s++) {
+            const satAngle = state.orbitAngle + (s * Math.PI * 2) / 3;
+            const sx = Math.cos(satAngle) * state.outerRingRadius;
+            const sy = Math.sin(satAngle) * state.outerRingRadius;
+
+            // Satellite dark outline
+            ctx.beginPath();
+            ctx.arc(sx, sy, 3.2, 0, Math.PI * 2);
+            ctx.fillStyle = "rgba(5, 7, 15, 0.65)";
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(sx, sy, 2.2, 0, Math.PI * 2);
+            ctx.fillStyle = "#FFFFFF";
+            ctx.shadowBlur = 6;
+            ctx.shadowColor = "#3EF2FF";
+            ctx.fill();
+            ctx.shadowBlur = 0;
+          }
+        }
+
+        // LAYER 2: Inner Primary Energy Ring (Electric Cyan #3EF2FF, 3.0px stroke, 90% opacity)
+        ctx.save();
+        ctx.rotate(state.energyAngle);
+
+        // 1px Dark Edge Outline
+        ctx.beginPath();
+        ctx.arc(0, 0, state.innerRingRadius, 0, Math.PI * 2);
+        ctx.strokeStyle = "rgba(5, 7, 15, 0.65)";
+        ctx.lineWidth = 4.5;
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(0, 0, state.innerRingRadius, 0, Math.PI * 2);
+        ctx.strokeStyle = "#3EF2FF";
+        ctx.lineWidth = state.type === "button" ? 3.5 : 3.0;
+        ctx.globalAlpha = Math.min(1.0, 0.9 * currentBrightness);
+        ctx.shadowBlur = 6;
+        ctx.shadowColor = "#3EF2FF";
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        ctx.restore();
+
+        // Sonar Click Active Ripple (100ms duration)
+        if (state.clickProgress > 0) {
+          const rippleRadius = (1.0 - state.clickProgress) * 35;
+          ctx.beginPath();
+          ctx.arc(0, 0, rippleRadius, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(62, 242, 255, ${state.clickProgress})`;
+          ctx.lineWidth = 2.0;
+          ctx.stroke();
+        }
+
+        // 4s Idle Holographic Easter Egg ("SYSTEM READY")
+        if (state.easterEggActive) {
+          ctx.beginPath();
+          ctx.arc(0, 0, state.easterEggPulseRadius, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(62, 242, 255, ${Math.max(0, state.easterEggTimer)})`;
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+
+          ctx.font = "bold 9px monospace";
+          ctx.fillStyle = `rgba(62, 242, 255, ${Math.min(1.0, state.easterEggTimer * 2)})`;
+          ctx.textAlign = "center";
+          ctx.fillText("SYSTEM READY", 0, -state.outerRingRadius - 12);
+        }
+      }
+
+      ctx.restore(); // End outer inertia rendering
+
+      // RENDER LAYER 1: Quantum Core (9.5px solid ceramic pure white + 1.5px cyan halo, locked 1:1)
+      if (state.type !== "text") {
+        ctx.save();
+        ctx.translate(state.coreX, state.coreY);
+
+        // Core 1.5px Cyan Halo
+        ctx.beginPath();
+        ctx.arc(0, 0, state.coreRadius + 1.5, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(62, 242, 255, 0.45)";
+        ctx.fill();
+
+        // Core 1px Dark Edge Outline
+        ctx.beginPath();
+        ctx.arc(0, 0, state.coreRadius + 0.5, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(5, 7, 15, 0.65)";
+        ctx.fill();
+
+        // Solid Pure White Core (9.5px diameter)
+        ctx.beginPath();
+        ctx.arc(0, 0, state.coreRadius, 0, Math.PI * 2);
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fill();
+
+        // Click 100ms white flash boost
+        if (state.clickProgress > 0.8) {
+          ctx.beginPath();
+          ctx.arc(0, 0, state.coreRadius + 2.0, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(255, 255, 255, 0.95)";
+          ctx.shadowBlur = 10;
+          ctx.shadowColor = "#FFFFFF";
+          ctx.fill();
+          ctx.shadowBlur = 0;
+        }
+
+        ctx.restore();
+      }
     };
 
-    render();
+    const unsubscribe = tickEngine.subscribe("zibrin-qcs-v2-cursor", render);
 
     return () => {
-      cancelAnimationFrame(animationFrameId);
+      unsubscribe();
       mediaQuery.removeEventListener("change", handleQueryChange);
       window.removeEventListener("resize", resizeCanvas);
-      window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mousedown", handleMouseDown);
-      window.removeEventListener("mouseup", handleMouseUp);
       document.removeEventListener("mouseover", handleMouseOver);
       document.removeEventListener("mouseout", handleMouseOut);
+      document.removeEventListener("mousemove", handleMouseMove);
     };
   }, []);
 
@@ -262,7 +508,6 @@ export default function CustomCursor() {
         ref={canvasRef}
         className="fixed inset-0 pointer-events-none z-[99999] hidden md:block"
       />
-      {/* HTML CSS Fallback for absolute progressive enhancement in case JS fails */}
       <noscript>
         <style>{`
           html, body, a, button, input, select, textarea {

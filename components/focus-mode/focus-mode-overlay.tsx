@@ -22,21 +22,17 @@ export default function FocusModeOverlay() {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const previousFocusedElement = useRef<HTMLElement | null>(null);
 
-  // Focus trapping and keyboard scroll handling
   useEffect(() => {
     if (!activeFocusKey) return;
 
-    // Save previous active element for focus restoration
     if (document.activeElement instanceof HTMLElement) {
       previousFocusedElement.current = document.activeElement;
     }
 
-    // Auto-focus container
     if (containerRef.current) {
       containerRef.current.focus();
     }
 
-    // Restore scroll position for activeFocusKey
     const savedTop = getScrollPosition(activeFocusKey);
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollTop = savedTop;
@@ -100,14 +96,12 @@ export default function FocusModeOverlay() {
     };
   }, [activeFocusKey, closeFocus, getScrollPosition]);
 
-  // Handle scroll position saving on scroll
   const handleScroll = () => {
     if (activeFocusKey && scrollContainerRef.current) {
       saveScrollPosition(activeFocusKey, scrollContainerRef.current.scrollTop);
     }
   };
 
-  // Prevent wheel event propagation to window
   const handleWheel = (e: React.WheelEvent) => {
     e.stopPropagation();
   };
@@ -118,24 +112,21 @@ export default function FocusModeOverlay() {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-0 md:p-4 lg:p-6 bg-space-black/80 backdrop-blur-[15px] transition-all duration-300 animate-in fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center p-0 md:p-4 lg:p-6 bg-[#05070F]/95 transition-opacity duration-300 animate-in fade-in"
       onWheel={handleWheel}
     >
-      {/* Dark Ambient Backdrop Tint (20%) */}
       <div
-        className="absolute inset-0 bg-space-black/20 pointer-events-auto cursor-pointer"
+        className="absolute inset-0 bg-[#05070F]/40 pointer-events-auto cursor-pointer"
         onClick={closeFocus}
         aria-hidden="true"
       />
 
-      {/* Adaptive Responsive Application Window */}
       <div
         ref={containerRef}
         tabIndex={-1}
-        className="relative z-10 w-full sm:w-[94vw] md:w-[90vw] lg:w-[88vw] max-w-[1700px] h-full sm:h-[94vh] md:h-[92vh] max-h-[96vh] bg-space-black/95 border border-cyan-glow/30 sm:rounded-3xl shadow-[0_0_90px_rgba(0,0,0,0.95)] backdrop-blur-2xl flex flex-col overflow-hidden outline-none animate-in zoom-in-95 duration-200"
+        className="relative z-10 w-full sm:w-[94vw] md:w-[90vw] lg:w-[88vw] max-w-[1700px] h-full sm:h-[94vh] md:h-[92vh] max-h-[96vh] bg-[#080C1B] border border-cyan-glow/30 sm:rounded-3xl shadow-[0_0_90px_rgba(0,0,0,0.95)] flex flex-col overflow-hidden outline-none animate-in zoom-in-95 duration-300 transform-gpu-3d"
       >
-        {/* Fixed Header (Shrink-0) */}
-        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 border-b border-white/10 bg-space-black/90 shrink-0">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 border-b border-white/10 bg-[#05070F] shrink-0">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-xl bg-cyan-glow/10 border border-cyan-glow/30 text-cyan-glow">
               <Sparkles className="w-4 h-4" />
@@ -152,7 +143,7 @@ export default function FocusModeOverlay() {
 
           <button
             onClick={closeFocus}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-cyan-glow/40 text-slate-300 hover:text-white transition-all text-xs font-mono cursor-pointer"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-cyan-glow/40 text-slate-300 hover:text-white transition-all duration-150 text-xs font-mono cursor-pointer active:scale-95"
             aria-label="Close Focus Mode (ESC)"
           >
             <span>CLOSE</span>
@@ -161,7 +152,6 @@ export default function FocusModeOverlay() {
           </button>
         </div>
 
-        {/* Scrollable Body (Flex-1, Overflow-Y-Auto with Glass Scrollbar and Lenis Prevent) */}
         <div
           ref={scrollContainerRef}
           onScroll={handleScroll}
